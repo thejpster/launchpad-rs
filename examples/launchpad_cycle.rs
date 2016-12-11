@@ -112,7 +112,7 @@ fn calculate_rgb(angle: u16) -> (u8, u8, u8) {
         x if x < 60 => ((x as f32) - 0.0) / 60.0,
         x if x < 180 => 1.0,
         x if x < 240 => 1.0 - (((x as f32) - 180.0) / 60.0),
-        _ => 0.0
+        _ => 0.0,
     };
 
     let b = match angle {
