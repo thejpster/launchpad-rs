@@ -34,7 +34,6 @@
 extern crate compiler_builtins;
 #[macro_use]
 extern crate cortex_m;
-//#[macro_use]
 extern crate alloc_cortex_m;
 pub extern crate lm4f120;
 extern crate r0;
@@ -49,7 +48,6 @@ extern crate volatile_register;
 
 pub mod board;
 pub mod common;
-// pub mod cpu;
 
 pub use lm4f120 as cpu;
 
