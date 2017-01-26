@@ -7,7 +7,7 @@ authors = [
 ]
 keywords = ["arm", "bare-metal", "blink", "lm4f120"]
 license = "MIT"
-name = "launchpad"
+name = "stellaris-launchpad"
 readme = "README.md"
 version = "0.5.6"
 description = "A bare-metal crate supporting the Texas Instruments Stellaris LM4F120 Launchpad (and most likely the Tiva-C TM4C120 Launchpad too)"
