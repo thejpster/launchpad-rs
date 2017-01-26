@@ -1,6 +1,6 @@
 # Rust on the Stellaris Launchpad
 
-A bare metal example program written in Rust (https://rust-lang.org) for the Stellaris Launchpad (LM4F120 dev board)
+A bare metal example program written in Rust (https://rust-lang.org) for the Stellaris Launchpad (LM4F120 dev board). May also work on the very closely related Tiva-C TM4C120 Launchpad.
 
 The idea is that useful functionality will be moved out into separate crates.
 
