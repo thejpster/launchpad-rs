@@ -12,7 +12,7 @@
 //
 // ****************************************************************************
 
-extern crate launchpad;
+extern crate stellaris_launchpad;
 extern crate alloc;
 #[macro_use]
 extern crate collections;
@@ -20,7 +20,7 @@ extern crate embedded_serial;
 
 use core::fmt::Write;
 use embedded_serial::NonBlockingRx;
-use launchpad::cpu::{gpio, systick, timer, uart};
+use stellaris_launchpad::cpu::{gpio, systick, timer, uart};
 
 // ****************************************************************************
 //
@@ -95,7 +95,7 @@ pub extern "C" fn main() {
                      systick::run_time_us() as u32)
                 .unwrap();
         };
-        launchpad::delay(50);
+        stellaris_launchpad::delay(50);
     }
 }
 
