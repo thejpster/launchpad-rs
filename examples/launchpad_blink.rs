@@ -14,7 +14,6 @@
 
 extern crate stellaris_launchpad;
 extern crate alloc;
-#[macro_use]
 extern crate collections;
 extern crate embedded_serial;
 

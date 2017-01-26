@@ -5,12 +5,15 @@ authors = [
 	"Jonathan 'theJPster' Pallant <github@thejpster.org.uk>",
 	"Marc Brinkmann"
 ]
-keywords = ["arm", "bare-metal", "blink", "lm4f120"]
+keywords = ["arm", "bare-metal", "blink", "lm4f120", "launchpad"]
 license = "MIT"
 name = "stellaris-launchpad"
 readme = "README.md"
-version = "0.5.7"
+version = "0.5.8"
 description = "A bare-metal crate supporting the Texas Instruments Stellaris LM4F120 Launchpad (and most likely the Tiva-C TM4C120 Launchpad too)"
+repository = "https://github.com/thejpster/launchpad-rs"
+categories = ["hardware-support"]
+homepage = "https://www.thejpster.org.uk"
 
 # The development profile, used for `cargo build`.
 [profile.dev]
@@ -26,7 +29,7 @@ lto = true
 r0 = "0.1.0"
 cortex-m = "0.1.5"
 volatile-register = "0.1.2"
-lm4f120 = "0.2.0"
+lm4f120 = "0.3.0"
 embedded-serial = "0.3.0"
 alloc-cortex-m = "0.2.0"
 rlibc = "1.0"
