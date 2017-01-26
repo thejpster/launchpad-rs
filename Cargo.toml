@@ -9,7 +9,7 @@ keywords = ["arm", "bare-metal", "blink", "lm4f120"]
 license = "MIT"
 name = "launchpad"
 readme = "README.md"
-version = "0.5.5"
+version = "0.5.6"
 
 # The development profile, used for `cargo build`.
 [profile.dev]
@@ -30,6 +30,6 @@ embedded-serial = "0.3.0"
 alloc-cortex-m = "0.2.0"
 rlibc = "1.0"
 
-[dependencies.compiler_builtins]
-git = "https://github.com/rust-lang-nursery/compiler-builtins.git"
+[dependencies.compiler-builtins-snapshot]
+version = "0.1"
 features = [ "mem" ]

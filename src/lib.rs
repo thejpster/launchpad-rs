@@ -14,7 +14,6 @@
 
 #![crate_type="staticlib"]
 #![feature(asm)]
-#![feature(compiler_builtins_lib)]
 #![feature(const_fn)]
 #![feature(core_intrinsics)]
 #![feature(lang_items)]
@@ -31,7 +30,7 @@
 //
 // ****************************************************************************
 
-extern crate compiler_builtins;
+extern crate compiler_builtins_snapshot;
 #[macro_use]
 extern crate cortex_m;
 extern crate alloc_cortex_m;
