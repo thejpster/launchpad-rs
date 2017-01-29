@@ -75,7 +75,7 @@ pub extern "C" fn main() {
                      systick::run_time_us() as u32,
                      level)
                 .unwrap();
-            while let Ok(ch) = uart.getc_try() {
+            while let Ok(Some(ch)) = uart.getc_try() {
                 writeln!(uart, "byte read {}", ch).unwrap();
             }
             loops = loops + 1;

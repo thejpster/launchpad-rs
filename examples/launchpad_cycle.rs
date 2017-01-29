@@ -78,7 +78,7 @@ pub extern "C" fn main() {
         tr.set_pwm(r as u32);
         tb.set_pwm(b as u32);
         tg.set_pwm(g as u32);
-        while let Ok(ch) = uart.getc_try() {
+        while let Ok(Some(ch)) = uart.getc_try() {
             writeln!(uart, "byte read {}", ch).unwrap();
         }
         loops = loops + 1;
