@@ -19,7 +19,7 @@ extern crate embedded_serial;
 
 use core::fmt::Write;
 use stellaris_launchpad::cpu::{gpio, systick, timer, uart};
-use embedded_serial::NonBlockingRx;
+use embedded_serial::{BlockingTx, NonBlockingRx};
 
 // ****************************************************************************
 //
@@ -63,6 +63,7 @@ pub extern "C" fn main() {
                         gpio::PinMode::Peripheral);
     gpio::enable_ccp(gpio::PinPort::PortF(gpio::Pin::Pin2));
     let levels = [1u32, 256, 512, 1024, 2048, 4096];
+    uart.puts("Welcome to Launchpad Blink\n").unwrap();
     loop {
         for level in levels.iter() {
             t.set_pwm(*level);
