@@ -15,15 +15,7 @@ use board;
 use cpu::{systick, uart};
 
 extern "C" {
-    // These symbols come from the linker script
-    static mut _data_start_flash: usize;
-    static mut _data_start: usize;
-    static mut _data_end: usize;
-    static mut _bss_start: usize;
-    static mut _bss_end: usize;
-    static mut _heap_start: usize;
-    static mut _heap_end: usize;
-    // This is defined by your application
+    // This must be defined by your application
     fn main();
     fn _stack_top();
 }
@@ -412,18 +404,23 @@ enum Exception {
 /// Copies global .data init from flash to SRAM and then
 /// zeros the bss segment.
 pub unsafe extern "C" fn reset_vector() {
-    let data_start_flash: *mut usize = &mut _data_start_flash;
-    let data_start: *mut usize = &mut _data_start;
-    let data_end: *mut usize = &mut _data_end;
-    let bss_start: *mut usize = &mut _bss_start;
-    let bss_end: *mut usize = &mut _bss_end;
-    let heap_start: *mut usize = &mut _heap_start;
-    let heap_end: *mut usize = &mut _heap_end;
+    extern "C" {
+        static mut _bss_start: u32;
+        static mut _bss_end: u32;
 
-    r0::init_data(data_start, data_end, data_start_flash);
-    r0::zero_bss(bss_start, bss_end);
+        static mut _data_start: u32;
+        static mut _data_end: u32;
 
-    alloc_cortex_m::init(heap_start, heap_end);
+        static mut _heap_start: usize;
+        static mut _heap_end: usize;
+
+        static _data_start_flash: u32;
+    }
+
+    r0::zero_bss(&mut _bss_start, &mut _bss_end);
+    r0::init_data(&mut _data_start, &mut _data_end, &_data_start_flash);
+
+    alloc_cortex_m::init(&mut _heap_start, &mut _heap_end);
 
     board::init();
     main();
