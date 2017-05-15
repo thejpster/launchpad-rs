@@ -75,7 +75,7 @@ pub extern "C" fn main() {
                      systick::ticks_to_usecs(delta),
                      systick::run_time_us() as u32,
                      level)
-                .unwrap();
+                    .unwrap();
             while let Ok(Some(ch)) = uart.getc_try() {
                 writeln!(uart, "byte read {}", ch).unwrap();
             }

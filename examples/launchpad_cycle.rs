@@ -92,7 +92,7 @@ pub extern "C" fn main() {
                      loops,
                      systick::ticks_to_usecs(delta),
                      systick::run_time_us() as u32)
-                .unwrap();
+                    .unwrap();
         };
         stellaris_launchpad::delay(50);
     }
