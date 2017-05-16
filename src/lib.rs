@@ -31,7 +31,6 @@
 //
 // ****************************************************************************
 
-// extern crate compiler_builtins_snapshot;
 extern crate compiler_builtins;
 #[macro_use]
 extern crate cortex_m;

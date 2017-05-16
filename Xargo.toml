@@ -1,2 +1,9 @@
 [target.thumbv7em-none-eabihf.dependencies]
 collections = {}  # implies alloc
+
+[dependencies.core]
+
+[dependencies.compiler_builtins]
+features = ["mem"]
+git = "https://github.com/rust-lang-nursery/compiler-builtins"
+stage = 1
