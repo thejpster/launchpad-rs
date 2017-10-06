@@ -5,19 +5,21 @@ authors = [
 	"Jonathan 'theJPster' Pallant <github@thejpster.org.uk>",
 	"Marc Brinkmann"
 ]
-keywords = ["arm", "bare-metal", "blink", "lm4f120", "launchpad"]
+keywords = ["arm", "bare-metal", "bootloader", "lm4f120", "launchpad"]
 license = "MIT"
-name = "stellaris-launchpad"
+name = "stellaris-launchpad-bootloader"
 readme = "README.md"
-version = "0.7.0"
-description = "A bare-metal crate supporting the Texas Instruments Stellaris LM4F120 Launchpad (and most likely the Tiva-C TM4C120 Launchpad too)"
-repository = "https://github.com/thejpster/launchpad-rs"
+version = "0.1.0"
+description = "A Tockloader compatible bootloader for the Texas Instruments Stellaris LM4F120 Launchpad (and most likely the Tiva-C TM4C120 Launchpad too)"
+repository = "https://github.com/thejpster/stellaris-launchpad-bootloader"
 categories = ["hardware-support"]
 homepage = "https://www.thejpster.org.uk"
 
 # The development profile, used for `cargo build`.
 [profile.dev]
 panic = "abort"
+debug = true
+lto = true
 
 # The release profile, used for `cargo build --release`.
 [profile.release]
@@ -26,13 +28,17 @@ debug = true
 lto = true
 
 [dependencies]
-r0 = "0.1.0"
-cortex-m = "0.1.5"
-volatile-register = "0.1.2"
+r0 = "0.2.2"
+cortex-m = "0.3.1"
+# volatile-register = "0.2.0"
 lm4f120 = "0.5.0"
 embedded-serial = "0.5.0"
-alloc-cortex-m = "0.2.0"
-rlibc = "1.0"
+# rlibc = "1.0"
 
 [badges]
-travis-ci = { repository = "thejpster/launchpad-rs", branch = "master" }
+travis-ci = { repository = "thejpster/stellaris-launchpad-bootloader", branch = "master" }
+
+[[bin]]
+name = "bootloader"
+path = "./src/main.rs"
+crate-type = ["staticlib"]

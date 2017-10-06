@@ -32,13 +32,9 @@
 // ****************************************************************************
 
 extern crate compiler_builtins;
-#[macro_use]
 extern crate cortex_m;
-extern crate alloc_cortex_m;
 pub extern crate lm4f120;
 extern crate r0;
-extern crate rlibc;
-extern crate volatile_register;
 
 // ****************************************************************************
 //

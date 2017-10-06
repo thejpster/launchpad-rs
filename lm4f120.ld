@@ -1,5 +1,6 @@
 /*
 * Copyright (c) 2012, Mauro Scomparin
+* Copyright (c) 2017, Jonathan 'theJPster' Pallant
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -13,10 +14,10 @@
 *       names of its contributors may be used to endorse or promote products
 *       derived from this software without specific prior written permission.
 *
-* THIS SOFTWARE IS PROVIDED BY Mauro Scomparin ``AS IS'' AND ANY
+* THIS SOFTWARE IS PROVIDED BY THE AUTHOR(S) ``AS IS'' AND ANY
 * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-* DISCLAIMED. IN NO EVENT SHALL Mauro Scomparin BE LIABLE FOR ANY
+* DISCLAIMED. IN NO EVENT SHALL THE AUTHOR(S) BE LIABLE FOR ANY
 * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
 * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
 * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
@@ -31,7 +32,7 @@
 
 /*
 * Memory definition:
-* FLASH:  start point 0x00,   lenght 0x40000.
+* FLASH:  start point 0x00,   length 0x10000.
 * SRAM:   start point 0x20000000  length 0x8000.
 *   VAR:    enough to hold .data and .bss
 *   HEAP:   All the remaining space, up to...
@@ -39,7 +40,9 @@
 */
 MEMORY
 {
-    FLASH (rx) : ORIGIN = 0x00000000, LENGTH = 0x00040000
+    /* Limit ourselves to the first 64 KiB of flash, leaving 192 KiB */
+    FLASH (rx) : ORIGIN = 0x00000000, LENGTH = 0x00010000
+    /* But we can use all the SRAM */
     SRAM (rwx) : ORIGIN = 0x20000000, LENGTH = 0x00008000
 }
 
