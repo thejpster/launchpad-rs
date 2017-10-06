@@ -34,6 +34,7 @@
 
 extern crate compiler_builtins;
 extern crate cortex_m;
+extern crate alloc_cortex_m;
 pub extern crate lm4f120;
 extern crate r0;
 

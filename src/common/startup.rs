@@ -384,6 +384,9 @@ pub unsafe extern "C" fn reset_vector() {
         static mut _data_start: u32;
         static mut _data_end: u32;
 
+        static mut _heap_start: usize;
+        static mut _heap_end: usize;
+
         static _data_start_flash: u32;
     }
 

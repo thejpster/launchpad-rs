@@ -29,8 +29,9 @@ lto = true
 
 [dependencies]
 r0 = "0.2.2"
+alloc-cortex-m = "0.3.0"
 cortex-m = "0.3.1"
-lm4f120 = "0.5.0"
+lm4f120 = "0.5.1"
 embedded-serial = "0.5.0"
 
 [badges]
