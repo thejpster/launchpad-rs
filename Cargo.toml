@@ -30,10 +30,8 @@ lto = true
 [dependencies]
 r0 = "0.2.2"
 cortex-m = "0.3.1"
-# volatile-register = "0.2.0"
 lm4f120 = "0.5.0"
 embedded-serial = "0.5.0"
-# rlibc = "1.0"
 
 [badges]
 travis-ci = { repository = "thejpster/stellaris-launchpad-bootloader", branch = "master" }
