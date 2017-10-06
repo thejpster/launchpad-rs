@@ -27,9 +27,6 @@ for EXAMPLE_RS in ./examples/*.rs; do
 
 done
 
-echo "Running xargo doc..."
-xargo doc
-
 echo "Examples available..."
 ls -lh ./target/thumbv7em-none-eabihf/*/examples/*
 

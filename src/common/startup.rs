@@ -393,7 +393,8 @@ pub unsafe extern "C" fn reset_vector() {
     r0::zero_bss(&mut _bss_start, &mut _bss_end);
     r0::init_data(&mut _data_start, &mut _data_end, &_data_start_flash);
 
-    ::ALLOCATOR.init(_heap_start, _heap_end - _heap_start);
+    let size = (&mut _heap_end as *mut usize as usize) - (&mut _heap_start as *mut usize as usize);
+    ::ALLOCATOR.init(&mut _heap_start as *mut usize as usize, size);
 
     board::init();
     main();
