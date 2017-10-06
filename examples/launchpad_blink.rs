@@ -14,7 +14,6 @@
 
 extern crate stellaris_launchpad;
 extern crate alloc;
-extern crate collections;
 extern crate embedded_serial;
 
 use core::fmt::Write;

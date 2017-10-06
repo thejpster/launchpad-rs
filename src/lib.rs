@@ -14,9 +14,10 @@
 
 #![crate_type="staticlib"]
 #![feature(asm)]
-#![feature(const_fn)]
 #![feature(compiler_builtins_lib)]
+#![feature(const_fn)]
 #![feature(core_intrinsics)]
+#![feature(global_allocator)]
 #![feature(lang_items)]
 #![feature(naked_functions)]
 #![feature(never_type)]
@@ -32,7 +33,6 @@
 // ****************************************************************************
 
 extern crate compiler_builtins;
-#[macro_use]
 extern crate cortex_m;
 extern crate alloc_cortex_m;
 pub extern crate lm4f120;
@@ -52,6 +52,8 @@ pub mod common;
 pub use lm4f120 as cpu;
 
 pub use cpu::systick::delay;
+
+use alloc_cortex_m::CortexMHeap;
 
 // ****************************************************************************
 //
@@ -75,7 +77,8 @@ pub use cpu::systick::delay;
 //
 // ****************************************************************************
 
-// None
+#[global_allocator]
+static ALLOCATOR: CortexMHeap = CortexMHeap::empty();
 
 // ****************************************************************************
 //

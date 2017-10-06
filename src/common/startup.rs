@@ -9,7 +9,6 @@
 
 use r0;
 use cortex_m;
-use alloc_cortex_m;
 
 use board;
 use cpu::{systick, uart};
@@ -39,7 +38,7 @@ extern "C" {
 /// that marks the start of the stack.
 #[link_section=".nvic_table"]
 #[no_mangle]
-pub static ISR_VECTORS: [Option<cortex_m::Handler>; 155] = [// Stack pointer
+pub static ISR_VECTORS: [Option<unsafe extern "C" fn()>; 155] = [// Stack pointer
                                                             Some(_stack_top),
                                                             // Reset
                                                             Some(reset_vector),
@@ -356,33 +355,7 @@ pub static ISR_VECTORS: [Option<cortex_m::Handler>; 155] = [// Stack pointer
 //
 // ****************************************************************************
 
-/// Kind of exception
-#[derive(Debug)]
-enum Exception {
-    /// i.e. currently not servicing an exception
-    ThreadMode,
-    /// Non-maskable interrupt.
-    Nmi,
-    /// All class of fault.
-    HardFault,
-    /// Memory management.
-    MemoryManagementFault,
-    /// Pre-fetch fault, memory access fault.
-    BusFault,
-    /// Undefined instruction or illegal state.
-    UsageFault,
-    /// System service call via SWI instruction
-    SVCall,
-    /// Pendable request for system service
-    PendSV,
-    /// System tick timer
-    Systick,
-    /// An interrupt
-    Interrupt(u8),
-    // Unreachable variant
-    #[doc(hidden)]
-    Reserved,
-}
+// None
 
 // ****************************************************************************
 //
@@ -420,7 +393,7 @@ pub unsafe extern "C" fn reset_vector() {
     r0::zero_bss(&mut _bss_start, &mut _bss_end);
     r0::init_data(&mut _data_start, &mut _data_end, &_data_start_flash);
 
-    alloc_cortex_m::init(&mut _heap_start, &mut _heap_end);
+    ::ALLOCATOR.init(_heap_start, _heap_end - _heap_start);
 
     board::init();
     main();
@@ -431,25 +404,6 @@ pub unsafe extern "C" fn reset_vector() {
 // Private Functions
 //
 // ****************************************************************************
-
-impl Exception {
-    /// Returns the exception that's currently being serviced
-    pub fn current() -> Exception {
-        match cortex_m::peripheral::scb().icsr.read() as u8 {
-            0 => Exception::ThreadMode,
-            2 => Exception::Nmi,
-            3 => Exception::HardFault,
-            4 => Exception::MemoryManagementFault,
-            5 => Exception::BusFault,
-            6 => Exception::UsageFault,
-            11 => Exception::SVCall,
-            14 => Exception::PendSV,
-            15 => Exception::Systick,
-            n if n >= 16 => Exception::Interrupt(n - 16),
-            _ => Exception::Reserved,
-        }
-    }
-}
 
 /// A HardFault is an exception that occurs because of an error during
 /// exception processing, or because an exception cannot be managed by any
@@ -474,14 +428,14 @@ pub unsafe extern "C" fn isr_hardfault() {
 /// HardFault using a normal Rust function. It's `no_mangle` because we
 /// refer to it from raw assembler in `isr_hardfault`.
 #[no_mangle]
-pub unsafe extern "C" fn isr_hardfault_rs(_sf: &cortex_m::StackFrame) -> ! {
+pub unsafe extern "C" fn isr_hardfault_rs(_sf: &cortex_m::exception::ExceptionFrame) -> ! {
     // Need ITM support for this to work
-    // iprintln!("EXCEPTION {:?} @ PC=0x{:08x}", Exception::current(), sf.pc);
+    // iprintln!("EXCEPTION {:?} @ PC=0x{:08x}", Exception::active(), sf.pc);
 
     // We can see this in the debugger
-    let _exc = Exception::current();
+    let _exc = cortex_m::exception::Exception::active();
 
-    bkpt!();
+    cortex_m::asm::bkpt();
 
     loop {}
 }
