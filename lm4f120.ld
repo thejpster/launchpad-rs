@@ -69,6 +69,8 @@ SECTIONS
     {
         KEEP(*(.nvic_table))     /* This must be first. It tells the ARM where the stack and IRQ vectors are. */
                                  /* KEEP stops it being removed as we don't refer to it anywhere. */
+        . = ALIGN(1024);         /* Reserve room for flags and attributes at address 0x400 */
+        KEEP(*(.attributes .attributes.*))
         *(.text*)                /* This contains most of the executable code. */
         *(.rodata*)              /* Read only data (const variables) */
         . = ALIGN(4);
