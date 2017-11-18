@@ -1,14 +1,13 @@
 script: ./build.sh
 cache: apt
-dist: trusty
-before_install:
-  - sudo add-apt-repository ppa:terry.guo/gcc-arm-embedded -y
-  - sudo apt-get update
+language: rust
+rust:
+  - nightly
+before_script:
+  - export PATH=$PATH:/home/travis/gcc-arm-none-eabi-6-2017-q2-update/bin
 install:
-  - sudo apt-get install gcc-arm-none-eabi -y --force-yes
-  - curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly
-  - source /home/travis/.cargo/env
   - pushd /
   - rustup component add rust-src
   - cargo install xargo
   - popd
+  - curl https://armkeil.blob.core.windows.net/developer/Files/downloads/gnu-rm/6-2017q2/gcc-arm-none-eabi-6-2017-q2-update-linux.tar.bz2 | tar -C /home/travis -x -j
