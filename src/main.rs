@@ -51,19 +51,12 @@ use stellaris_launchpad_bootloader::delay;
 use stellaris_launchpad_bootloader::cpu::uart;
 
 use embedded_serial::{MutBlockingTx, MutNonBlockingRx};
+
 use tockloader_proto::{ResponseEncoder, CommandDecoder};
 
 // ****************************************************************************
 //
 // Public Types
-//
-// ****************************************************************************
-
-// None
-
-// ****************************************************************************
-//
-// Private Types
 //
 // ****************************************************************************
 
@@ -84,20 +77,23 @@ pub struct Attribute {
 
 // ****************************************************************************
 //
-// Public Data
+// Private Types
 //
 // ****************************************************************************
 
-const BLANK_ATTRIBUTE: Attribute = Attribute {
-    key: *b"\0\0\0\0\0\0\0\0",
-    length: 0,
-    value: *b"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
-};
+// None
+
+// ****************************************************************************
+//
+// Public Data
+//
+// ****************************************************************************
 
 #[link_section = ".attributes"]
 #[no_mangle]
 pub static FLASH_INFO: FlashInfo = FlashInfo {
     flag_bootloader_exists: *b"TOCKBOOTLOADER",
+    // Must match VERSION_STRING below
     flag_version_string: *b"0.1.0\0\0\0",
     flag_padding: [0; 490],
     attributes: [
@@ -134,24 +130,28 @@ pub static FLASH_INFO: FlashInfo = FlashInfo {
 
 // ****************************************************************************
 //
+// Private Data
+//
+// ****************************************************************************
+
+// Must match flag_version_string above
+const VERSION_STRING: &[u8] = b"{ \"version\":\"0.1.0\", \"name\":\"Tock Bootloader\" }";
+
+const BLANK_ATTRIBUTE: Attribute = Attribute {
+    key: *b"\0\0\0\0\0\0\0\0",
+    length: 0,
+    value: *b"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
+};
+
+// ****************************************************************************
+//
 // Public Functions
 //
 // ****************************************************************************
-fn handle_getattr(index: u8) -> Option<tockloader_proto::Response<'static>> {
-    let index = index as usize;
-    if index < FLASH_INFO.attributes.len() {
-        Some(tockloader_proto::Response::GetAttr {
-            key: &FLASH_INFO.attributes[index].key,
-            value: &FLASH_INFO.attributes[index].value,
-        })
-    } else {
-        Some(tockloader_proto::Response::BadArguments)
-    }
-}
 
 #[no_mangle]
 pub extern "C" fn main() {
-    let mut uart = uart::Uart::new(uart::UartId::Uart0, 115200, uart::NewlineMode::SwapLFtoCRLF);
+    let mut uart = uart::Uart::new(uart::UartId::Uart0, 115200, uart::NewlineMode::Binary);
     let mut decoder = CommandDecoder::new();
     board::led_off(board::Led::Green);
     delay(100);
@@ -167,7 +167,7 @@ pub extern "C" fn main() {
             let response = match decoder.receive(ch) {
                 Ok(None) => None,
                 Ok(Some(tockloader_proto::Command::Ping)) => Some(tockloader_proto::Response::Pong),
-                // Ok(Some(tockloader_proto::Command::Info)) => panic!(),
+                Ok(Some(tockloader_proto::Command::Info)) => Some(tockloader_proto::Response::Info { info: VERSION_STRING }),
                 // Ok(Some(tockloader_proto::Command::Id)) => panic!(),
                 Ok(Some(tockloader_proto::Command::Reset)) => {
                     need_reset = true;
@@ -178,10 +178,10 @@ pub extern "C" fn main() {
                 // Ok(Some(tockloader_proto::Command::EraseExBlock { address })) => panic!(),
                 // Ok(Some(tockloader_proto::Command::WriteExPage { address, data })) => panic!(),
                 // Ok(Some(tockloader_proto::Command::CrcRxBuffer)) => panic!(),
-                // Ok(Some(tockloader_proto::Command::ReadRange {
-                //             address,
-                //             length,
-                //         })) => panic!(),
+                Ok(Some(tockloader_proto::Command::ReadRange {
+                            address,
+                            length,
+                        })) => handle_rrange(address, length),
                 // Ok(Some(tockloader_proto::Command::ExReadRange {
                 //             address,
                 //             length,
@@ -222,15 +222,24 @@ pub extern "C" fn main() {
 //
 // ****************************************************************************
 
-// impl Default for Attribute {
-//     fn default() -> Attribute {
-//         Attribute {
-//             key: *b"\0\0\0\0\0\0\0\0",
-//             length: 0,
-//             value: *b"\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0"
-//         }
-//     }
-// }
+fn handle_rrange(address: u32, length: u16) -> Option<tockloader_proto::Response<'static>> {
+    let data = unsafe { core::slice::from_raw_parts(address as *const u8, length as usize) };
+    Some(tockloader_proto::Response::ReadRange {
+        data
+    })
+}
+
+fn handle_getattr(index: u8) -> Option<tockloader_proto::Response<'static>> {
+    let index = index as usize;
+    if index < FLASH_INFO.attributes.len() {
+        Some(tockloader_proto::Response::GetAttr {
+            key: &FLASH_INFO.attributes[index].key,
+            value: &FLASH_INFO.attributes[index].value,
+        })
+    } else {
+        Some(tockloader_proto::Response::BadArguments)
+    }
+}
 
 // ****************************************************************************
 //
