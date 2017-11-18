@@ -31,6 +31,7 @@ lto = true
 r0 = "0.2.2"
 alloc-cortex-m = "0.3.0"
 cortex-m = "0.3.1"
+volatile-register = "0.2.0"
 lm4f120 = "0.5.1"
 embedded-serial = "0.5.0"
 # tockloader-proto = { path = "../tockloader-proto" }
