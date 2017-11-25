@@ -9,9 +9,9 @@ keywords = ["arm", "bare-metal", "blink", "lm4f120", "launchpad"]
 license = "MIT"
 name = "stellaris-launchpad"
 readme = "README.md"
-version = "0.7.1"
+version = "0.8.0"
 description = "A bare-metal crate supporting the Texas Instruments Stellaris LM4F120 Launchpad (and most likely the Tiva-C TM4C120 Launchpad too)"
-repository = "https://github.com/thejpster/launchpad-rs"
+repository = "https://github.com/thejpster/stellaris-launchpad"
 categories = ["hardware-support"]
 homepage = "https://www.thejpster.org.uk"
 
@@ -37,4 +37,4 @@ alloc-cortex-m = "0.3.0"
 rlibc = "1.0"
 
 [badges]
-travis-ci = { repository = "thejpster/launchpad-rs", branch = "master" }
+travis-ci = { repository = "thejpster/stellaris-launchpad", branch = "master" }
