@@ -11,7 +11,7 @@ name = "stellaris-launchpad-bootloader"
 readme = "README.md"
 version = "0.1.0"
 description = "A Tockloader compatible bootloader for the Texas Instruments Stellaris LM4F120 Launchpad (and most likely the Tiva-C TM4C120 Launchpad too)"
-repository = "https://github.com/thejpster/stellaris-launchpad-bootloader"
+repository = "https://github.com/thejpster/stellaris-launchpad"
 categories = ["hardware-support"]
 homepage = "https://www.thejpster.org.uk"
 
@@ -35,10 +35,10 @@ volatile-register = "0.2.0"
 lm4f120 = "0.5.1"
 embedded-serial = "0.5.0"
 # tockloader-proto = { path = "../tockloader-proto" }
-tockloader-proto = "0.1"
+tockloader-proto = "0.2"
 
 [badges]
-travis-ci = { repository = "thejpster/stellaris-launchpad-bootloader", branch = "master" }
+travis-ci = { repository = "thejpster/stellaris-launchpad", branch = "bootloader" }
 
 [[bin]]
 name = "bootloader"
