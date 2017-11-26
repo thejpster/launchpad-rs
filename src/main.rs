@@ -44,15 +44,16 @@
 
 extern crate stellaris_launchpad_bootloader;
 extern crate embedded_serial;
-extern crate tockloader_proto;
+extern crate tockloader_proto as proto;
 
 use stellaris_launchpad_bootloader::board;
 use stellaris_launchpad_bootloader::delay;
 use stellaris_launchpad_bootloader::cpu::uart;
+use stellaris_launchpad_bootloader::cpu::flash;
 
 use embedded_serial::{MutBlockingTx, MutNonBlockingRx};
 
-use tockloader_proto::{ResponseEncoder, CommandDecoder};
+use proto::{ResponseEncoder, CommandDecoder};
 
 // ****************************************************************************
 //
@@ -166,39 +167,39 @@ pub extern "C" fn main() {
             let mut need_reset = false;
             let response = match decoder.receive(ch) {
                 Ok(None) => None,
-                Ok(Some(tockloader_proto::Command::Ping)) => Some(tockloader_proto::Response::Pong),
-                Ok(Some(tockloader_proto::Command::Info)) => Some(tockloader_proto::Response::Info { info: VERSION_STRING }),
-                // Ok(Some(tockloader_proto::Command::Id)) => panic!(),
-                Ok(Some(tockloader_proto::Command::Reset)) => {
+                Ok(Some(proto::Command::Ping)) => Some(proto::Response::Pong),
+                Ok(Some(proto::Command::Info)) => Some(proto::Response::Info { info: VERSION_STRING }),
+                // Ok(Some(proto::Command::Id)) => panic!(),
+                Ok(Some(proto::Command::Reset)) => {
                     need_reset = true;
                     None
                 }
-                // Ok(Some(tockloader_proto::Command::ErasePage { address })) => panic!(),
-                // Ok(Some(tockloader_proto::Command::WritePage { address, data })) => panic!(),
-                // Ok(Some(tockloader_proto::Command::EraseExBlock { address })) => panic!(),
-                // Ok(Some(tockloader_proto::Command::WriteExPage { address, data })) => panic!(),
-                // Ok(Some(tockloader_proto::Command::CrcRxBuffer)) => panic!(),
-                Ok(Some(tockloader_proto::Command::ReadRange {
+                Ok(Some(proto::Command::ErasePage { address })) => handle_erase_page(address),
+                Ok(Some(proto::Command::WritePage { address, data })) => handle_write_page(address, data),
+                // Ok(Some(proto::Command::EraseExBlock { address })) => panic!(),
+                // Ok(Some(proto::Command::WriteExPage { address, data })) => panic!(),
+                // Ok(Some(proto::Command::CrcRxBuffer)) => panic!(),
+                Ok(Some(proto::Command::ReadRange {
                             address,
                             length,
                         })) => handle_rrange(address, length),
-                // Ok(Some(tockloader_proto::Command::ExReadRange {
+                // Ok(Some(proto::Command::ExReadRange {
                 //             address,
                 //             length,
                 //         })) => panic!(),
-                // Ok(Some(tockloader_proto::Command::SetAttr { index, key, value })) => panic!(),
-                Ok(Some(tockloader_proto::Command::GetAttr { index })) => handle_getattr(index),
-                // Ok(Some(tockloader_proto::Command::CrcIntFlash { address, length })) => panic!(),
-                // Ok(Some(tockloader_proto::Command::CrcExtFlash { address, length })) => panic!(),
-                // Ok(Some(tockloader_proto::Command::EraseExPage { address })) => panic!(),
-                // Ok(Some(tockloader_proto::Command::ExtFlashInit)) => panic!(),
-                // Ok(Some(tockloader_proto::Command::ClockOut)) => panic!(),
-                // Ok(Some(tockloader_proto::Command::WriteFlashUserPages { page1, page2 })) => {
+                // Ok(Some(proto::Command::SetAttr { index, key, value })) => panic!(),
+                Ok(Some(proto::Command::GetAttr { index })) => handle_getattr(index),
+                // Ok(Some(proto::Command::CrcIntFlash { address, length })) => panic!(),
+                // Ok(Some(proto::Command::CrcExtFlash { address, length })) => panic!(),
+                // Ok(Some(proto::Command::EraseExPage { address })) => panic!(),
+                // Ok(Some(proto::Command::ExtFlashInit)) => panic!(),
+                // Ok(Some(proto::Command::ClockOut)) => panic!(),
+                // Ok(Some(proto::Command::WriteFlashUserPages { page1, page2 })) => {
                 //     panic!()
                 // }
-                // Ok(Some(tockloader_proto::Command::ChangeBaud { mode, baud })) => panic!(),
-                Ok(Some(_)) => Some(tockloader_proto::Response::Unknown),
-                Err(_) => Some(tockloader_proto::Response::InternalError),
+                // Ok(Some(proto::Command::ChangeBaud { mode, baud })) => panic!(),
+                Ok(Some(_)) => Some(proto::Response::Unknown),
+                Err(_) => Some(proto::Response::InternalError),
             };
             if need_reset {
                 decoder.reset();
@@ -222,23 +223,53 @@ pub extern "C" fn main() {
 //
 // ****************************************************************************
 
-fn handle_rrange(address: u32, length: u16) -> Option<tockloader_proto::Response<'static>> {
+fn handle_rrange(address: u32, length: u16) -> Option<proto::Response<'static>> {
     let data = unsafe { core::slice::from_raw_parts(address as *const u8, length as usize) };
-    Some(tockloader_proto::Response::ReadRange {
+    Some(proto::Response::ReadRange {
         data
     })
 }
 
-fn handle_getattr(index: u8) -> Option<tockloader_proto::Response<'static>> {
+fn handle_getattr(index: u8) -> Option<proto::Response<'static>> {
     let index = index as usize;
     if index < FLASH_INFO.attributes.len() {
-        Some(tockloader_proto::Response::GetAttr {
+        Some(proto::Response::GetAttr {
             key: &FLASH_INFO.attributes[index].key,
             value: &FLASH_INFO.attributes[index].value,
         })
     } else {
-        Some(tockloader_proto::Response::BadArguments)
+        Some(proto::Response::BadArguments)
     }
+}
+
+fn handle_erase_page(address: u32) -> Option<proto::Response<'static>> {
+    match flash::erase_page(flash::FlashAddress(address)) {
+        Err(_) => Some(proto::Response::BadArguments),
+        Ok(_) => Some(proto::Response::Ok),
+    }
+}
+
+fn handle_write_page(mut address: u32, data: &[u8]) -> Option<proto::Response<'static>> {
+    // Ensure we've got a multiple of four bytes
+    if (data.len() & 3) != 0 {
+        return Some(proto::Response::BadArguments)
+    }
+
+    // split the data into 4-byte blocks
+    for chunk in data.chunks(4) {
+        let mut word: u32 = 0;
+        // turn four bytes into one 32-bit value
+        for byte in chunk {
+            word <<= 8;
+            word |= *byte as u32;
+        }
+        match flash::write_word(flash::FlashAddress(address), word) {
+            Err(_) => return Some(proto::Response::BadArguments),
+            Ok(_) => {},
+        }
+        address += 4;
+    }
+    Some(proto::Response::Ok)
 }
 
 // ****************************************************************************
