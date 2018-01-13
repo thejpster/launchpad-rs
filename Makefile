@@ -14,7 +14,7 @@ build: $(DEBUG_BIN) $(RELEASE_BIN)
 clean:
 	cargo clean
 
-%.bin: %
+$(DEBUG_BIN) $(RELEASE_BIN): %.bin: %
 	arm-none-eabi-size -x $<
 	arm-none-eabi-objcopy -O binary $< $@
 
