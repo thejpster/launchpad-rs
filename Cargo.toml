@@ -9,7 +9,7 @@ keywords = ["arm", "bare-metal", "bootloader", "lm4f120", "launchpad"]
 license = "MIT"
 name = "stellaris-launchpad-bootloader"
 readme = "README.md"
-version = "0.1.0"
+version = "0.2.0"
 description = "A Tockloader compatible bootloader for the Texas Instruments Stellaris LM4F120 Launchpad (and most likely the Tiva-C TM4C120 Launchpad too)"
 repository = "https://github.com/thejpster/stellaris-launchpad"
 categories = ["hardware-support"]
@@ -19,21 +19,20 @@ homepage = "https://www.thejpster.org.uk"
 [profile.dev]
 panic = "abort"
 debug = true
-lto = true
 
 # The release profile, used for `cargo build --release`.
 [profile.release]
 panic = "abort"
 debug = true
-lto = true
 
 [dependencies]
-r0 = "0.2.2"
-alloc-cortex-m = "0.3.0"
-cortex-m = "0.3.1"
-volatile-register = "0.2.0"
-lm4f120 = "0.5.1"
-embedded-serial = "0.5.0"
+r0 = "0.2"
+alloc-cortex-m = "0.3"
+cortex-m = "0.3"
+volatile-register = "0.2"
+lm4f120 = { path = "../lm4f120" }
+# lm4f120 = "0.6"
+embedded-serial = "0.5"
 # tockloader-proto = { path = "../tockloader-proto" }
 tockloader-proto = "0.2"
 

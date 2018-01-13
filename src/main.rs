@@ -55,6 +55,8 @@ use embedded_serial::{MutBlockingTx, MutNonBlockingRx};
 
 use proto::{ResponseEncoder, CommandDecoder};
 
+use core::fmt::Write;
+
 // ****************************************************************************
 //
 // Public Types
@@ -154,13 +156,23 @@ const BLANK_ATTRIBUTE: Attribute = Attribute {
 pub extern "C" fn main() {
     let mut uart = uart::Uart::new(uart::UartId::Uart0, 115200, uart::NewlineMode::Binary);
     let mut decoder = CommandDecoder::new();
-    board::led_off(board::Led::Green);
-    delay(100);
+
+    board::led_on(board::Led::Red);
+    delay(500);
+    board::led_off(board::Led::Red);
+    delay(500);
     board::led_on(board::Led::Green);
-    delay(100);
-    board::led_off(board::Led::Green);
-    delay(1000);
-    board::led_on(board::Led::Green);
+    delay(500);
+
+    for page in 0..128 {
+        let address = page * 2048;
+        write!(uart, "0x{:08x}: {}", address, match flash::get_protection(flash::FlashAddress(address)) {
+            flash::ProtectMode::ReadOnly => "RO\n",
+            flash::ProtectMode::ReadWrite => "RW\n",
+            flash::ProtectMode::ExecuteOnly => "XO\n",
+        }).unwrap();
+    }
+
     loop {
         if let Ok(Some(ch)) = uart.getc_try() {
             board::led_off(board::Led::Green);
