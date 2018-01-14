@@ -15,8 +15,9 @@ A [TockOS](https://tockos.org) compatible bootloader written in Rust (https://ru
 ```bash
 cargo install xargo
 rustup install nightly
-git clone https://github.com/thejpster/stellaris-launchpad-bootloader.git
-cd ./stellaris-launchpad-bootloader
+git clone https://github.com/thejpster/stellaris-launchpad.git
+cd ./stellaris-launchpad
+git checkout bootloader
 rustup override set nightly
 rustup component add rust-src
 ```
@@ -24,16 +25,15 @@ rustup component add rust-src
 ## Compile and upload
 
 ```bash
-xargo build --example bootloader
-arm-none-eabi-objcopy -O binary target/thumbv7em-none-eabihf/debug/examples/bootloader target/thumbv7em-none-eabihf/debug/examples/bootloader.bin
-sudo lm4flash target/thumbv7em-none-eabihf/debug/examples/bootloader.bin
+make # calls xargo build, then arm-none-eabi-objcopy
+sudo lm4flash target/thumbv7em-none-eabihf/debug/bootloader.bin
 ```
 
 ## You can also debug
 
 ```
 ~/stellaris-launchpad-bootloader $ sudo openocd -f /usr/share/openocd/scripts/board/ek-lm4f120xl.cfg
-~/stellaris-launchpad-bootloader $ arm-none-eabi-gdb ./target/thumbv7em-none-eabihf/debug/examples/bootloader
+~/stellaris-launchpad-bootloader $ arm-none-eabi-gdb ./target/thumbv7em-none-eabihf/debug/bootloader
 (gdb) target remote localhost:3333
 (gdb) load
 Loading section .text, size 0x1e98 lma 0x0
@@ -44,6 +44,52 @@ Transfer rate: 7 KB/sec, 2617 bytes/write.
 (gdb) monitor reset halt
 (gdb) break main
 (gdb) continue
+```
+
+## You can play with Tockloader
+
+```
+$ python3 -mvenv ./env
+$ ./env/bin/pip install tockloader
+$ ./env/bin/tockloader dump-flash-page 0
+No device name specified. Using default "tock"
+No serial port with device name "tock" found
+Found 1 serial port(s).
+Using "/dev/ttyACM0 - In-Circuit Debug Interface"
+
+Getting page of flash...
+Page number: 0 (0x000000)
+00000000  00 80 00 20 97 14 00 00  71 15 00 00 59 15 00 00  |... ....q...Y...|
+00000010  73 15 00 00 7d 15 00 00  87 15 00 00 00 00 00 00  |s...}...........|
+...
+000001e0  9b 15 00 00 9b 15 00 00  9b 15 00 00 00 00 00 00  |................|
+000001f0  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  |................|
+Finished in 1.262 seconds
+
+$ ./env/bin/tockloader list-attributes
+No device name specified. Using default "tock"
+No serial port with device name "tock" found
+Found 1 serial port(s).
+Using "/dev/ttyACM0 - In-Circuit Debug Interface"
+
+Listing attributes...
+00:    board = stellaris launchpad
+01:     arch = cortex-m4
+02: jldevice = LM4F120H5QR
+03:          = 
+04:          = 
+05:          = 
+06:          = 
+07:          = 
+08:          = 
+09:          = 
+10:          = 
+11:          = 
+12:          = 
+13:          = 
+14:          = 
+15:          = 
+Finished in 1.325 seconds
 ```
 
 ## Flash memory map
