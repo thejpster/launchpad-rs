@@ -34,6 +34,7 @@
 #![no_std]
 #![no_main]
 #![feature(asm)]
+#![feature(core_intrinsics)]
 #![crate_type="staticlib"]
 
 // ****************************************************************************
@@ -44,6 +45,7 @@
 
 extern crate stellaris_launchpad_bootloader;
 extern crate embedded_serial;
+extern crate crc;
 extern crate tockloader_proto as proto;
 
 use stellaris_launchpad_bootloader::board;
@@ -54,8 +56,6 @@ use stellaris_launchpad_bootloader::cpu::flash;
 use embedded_serial::{MutBlockingTx, MutNonBlockingRx};
 
 use proto::{ResponseEncoder, CommandDecoder};
-
-use core::fmt::Write;
 
 // ****************************************************************************
 //
@@ -164,15 +164,6 @@ pub extern "C" fn main() {
     board::led_on(board::Led::Green);
     delay(500);
 
-    for page in 0..128 {
-        let address = page * 2048;
-        write!(uart, "0x{:08x}: {}", address, match flash::get_protection(flash::FlashAddress(address)) {
-            flash::ProtectMode::ReadOnly => "RO\n",
-            flash::ProtectMode::ReadWrite => "RW\n",
-            flash::ProtectMode::ExecuteOnly => "XO\n",
-        }).unwrap();
-    }
-
     loop {
         if let Ok(Some(ch)) = uart.getc_try() {
             board::led_off(board::Led::Green);
@@ -201,7 +192,7 @@ pub extern "C" fn main() {
                 //         })) => panic!(),
                 // Ok(Some(proto::Command::SetAttr { index, key, value })) => panic!(),
                 Ok(Some(proto::Command::GetAttr { index })) => handle_getattr(index),
-                // Ok(Some(proto::Command::CrcIntFlash { address, length })) => panic!(),
+                Ok(Some(proto::Command::CrcIntFlash { address, length })) => handle_crc(address, length),
                 // Ok(Some(proto::Command::CrcExtFlash { address, length })) => panic!(),
                 // Ok(Some(proto::Command::EraseExPage { address })) => panic!(),
                 // Ok(Some(proto::Command::ExtFlashInit)) => panic!(),
@@ -235,6 +226,16 @@ pub extern "C" fn main() {
 //
 // ****************************************************************************
 
+fn handle_crc(address: u32, length: u32) -> Option<proto::Response<'static>> {
+    let data = unsafe { core::slice::from_raw_parts(address as *const u8, length as usize) };
+    // tockloader Python says:
+    // crc_function = crcmod.mkCrcFun(0x104c11db7, initCrc=0, xorOut=0xFFFFFFFF)
+    let result = crc::crc32::checksum_ieee(data);
+    Some(proto::Response::CrcIntFlash {
+        crc: result
+    })
+}
+
 fn handle_rrange(address: u32, length: u16) -> Option<proto::Response<'static>> {
     let data = unsafe { core::slice::from_raw_parts(address as *const u8, length as usize) };
     Some(proto::Response::ReadRange {
@@ -261,25 +262,34 @@ fn handle_erase_page(address: u32) -> Option<proto::Response<'static>> {
     }
 }
 
+/// Convert four little-endian bytes to a U32
+fn pack_le(data: &[u8]) -> u32 {
+    ((data[3] as u32) << 24) |
+    ((data[2] as u32) << 16) |
+    ((data[1] as u32) << 8) |
+    (data[0] as u32) << 0
+}
+
 fn handle_write_page(mut address: u32, data: &[u8]) -> Option<proto::Response<'static>> {
     // Ensure we've got a multiple of four bytes
     if (data.len() & 3) != 0 {
         return Some(proto::Response::BadArguments)
     }
 
-    // split the data into 4-byte blocks
-    for chunk in data.chunks(4) {
-        let mut word: u32 = 0;
-        // turn four bytes into one 32-bit value
-        for byte in chunk {
-            word <<= 8;
-            word |= *byte as u32;
-        }
-        match flash::write_word(flash::FlashAddress(address), word) {
+    let mut offset = 0;
+    let mut remaining_words = data.len() / 4;
+
+    while remaining_words > 0 {
+        let this_time = if remaining_words > flash::PAGE_LENGTH_WORDS { flash::PAGE_LENGTH_WORDS } else { remaining_words };
+        let source = &data[offset..offset+(this_time*4)];
+        // Pass `write_page` an iterator, so we don't need to duplicate the data.
+        match flash::write_page(flash::FlashAddress(address), source.chunks(4).map(pack_le)) {
             Err(_) => return Some(proto::Response::BadArguments),
             Ok(_) => {},
-        }
-        address += 4;
+        };
+        remaining_words = remaining_words - this_time;
+        address += this_time as u32 * 4;
+        offset += this_time * 4;
     }
     Some(proto::Response::Ok)
 }

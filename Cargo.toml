@@ -34,11 +34,15 @@ r0 = "0.2"
 alloc-cortex-m = "0.3"
 cortex-m = "0.3"
 volatile-register = "0.2"
-# lm4f120 = "0.8"
-lm4f120 = { path = "../lm4f120" }
+lm4f120 = "0.8"
+# lm4f120 = { path = "../lm4f120" }
 embedded-serial = "0.5"
 # tockloader-proto = { path = "../tockloader-proto" }
 tockloader-proto = "0.2"
+
+[dependencies.crc]
+version = "1.0"
+default-features = false
 
 [badges]
 travis-ci = { repository = "thejpster/stellaris-launchpad", branch = "bootloader" }

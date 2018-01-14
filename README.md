@@ -46,6 +46,28 @@ Transfer rate: 7 KB/sec, 2617 bytes/write.
 (gdb) continue
 ```
 
+## Flash memory map
+
+The LM4F120 has 256 KiB of Flash and 32 KiB of SRAM. The flash
+starts at address 0x0000_0000 and the SRAM starts at address
+0x2000_0000.
+
+
+```
++----------+------+-------------+---------------------------+
+|          |      |             |                           |
+|Interrupts| Info |Bootloader   | Application               |
+|          |      |             |                           |
++----------+------+-----------------------------------------+
+0x0        0x400  0x980         0x10000
+```
+
+The interrupt table takes up only the first 156 32-bit words or so. The Info
+block starts at address 1024 (0x400) and contains the various TockOS
+attributes like version numbers and board info. The bootloader follows the
+info block and ends at 64 KiB (0x10000), leaving the remaining 192 KiB for
+applications.
+
 ## What works:
 
 * UART works, using the on-board UART-to-USB bridge (115200 bps, 8N1)
