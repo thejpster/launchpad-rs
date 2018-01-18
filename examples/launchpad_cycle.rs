@@ -14,10 +14,10 @@
 
 extern crate stellaris_launchpad;
 extern crate alloc;
-extern crate embedded_serial;
+extern crate embedded_hal;
 
 use core::fmt::Write;
-use embedded_serial::NonBlockingRx;
+use embedded_hal::serial::Read as ReadHal;
 use stellaris_launchpad::cpu::{gpio, systick, timer, uart};
 
 // ****************************************************************************
@@ -77,7 +77,7 @@ pub extern "C" fn main() {
         tr.set_pwm(r as u32);
         tb.set_pwm(b as u32);
         tg.set_pwm(g as u32);
-        while let Ok(Some(ch)) = uart.getc_try() {
+        while let Ok(ch) = uart.read() {
             writeln!(uart, "byte read {}", ch).unwrap();
         }
         loops = loops + 1;

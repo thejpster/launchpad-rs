@@ -14,11 +14,11 @@
 
 extern crate stellaris_launchpad;
 extern crate alloc;
-extern crate embedded_serial;
+extern crate embedded_hal;
 
 use core::fmt::Write;
 use stellaris_launchpad::cpu::{gpio, systick, timer, uart};
-use embedded_serial::{BlockingTx, NonBlockingRx};
+use embedded_hal::serial::Read as ReadHal;
 
 // ****************************************************************************
 //
@@ -62,7 +62,7 @@ pub extern "C" fn main() {
                         gpio::PinMode::Peripheral);
     gpio::enable_ccp(gpio::PinPort::PortF(gpio::Pin::Pin2));
     let levels = [1u32, 256, 512, 1024, 2048, 4096];
-    uart.puts("Welcome to Launchpad Blink\n").unwrap();
+    uart.write_all("Welcome to Launchpad Blink\n");
     loop {
         for level in levels.iter() {
             t.set_pwm(*level);
@@ -75,7 +75,7 @@ pub extern "C" fn main() {
                      systick::run_time_us() as u32,
                      level)
                     .unwrap();
-            while let Ok(Some(ch)) = uart.getc_try() {
+            while let Ok(ch) = uart.read() {
                 writeln!(uart, "byte read {}", ch).unwrap();
             }
             loops = loops + 1;
