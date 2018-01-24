@@ -68,17 +68,18 @@ pub extern "C" fn _Unwind_Resume() -> ! {
 }
 
 /// Required by the compiler.
-#[lang="eh_personality"]
+#[lang = "eh_personality"]
 extern "C" fn eh_personality() {}
 
 /// Entry point of panic from the libcore crate.
 ///
 /// Required by the compiler.
-#[lang="panic_fmt"]
+#[lang = "panic_fmt"]
 #[no_mangle]
-pub extern "C" fn rust_begin_unwind(_fmt: &core::fmt::Arguments,
-                                    _file_line: &(&'static str, usize))
-                                    -> ! {
+pub extern "C" fn rust_begin_unwind(
+    _fmt: &core::fmt::Arguments,
+    _file_line: &(&'static str, usize),
+) -> ! {
     board::panic();
 }
 

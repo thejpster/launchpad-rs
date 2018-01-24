@@ -4,7 +4,7 @@
 #![no_std]
 #![no_main]
 #![feature(alloc, collections, asm)]
-#![crate_type="staticlib"]
+#![crate_type = "staticlib"]
 
 // ****************************************************************************
 //
@@ -12,9 +12,9 @@
 //
 // ****************************************************************************
 
-extern crate stellaris_launchpad;
 extern crate alloc;
 extern crate embedded_hal;
+extern crate stellaris_launchpad;
 
 use core::fmt::Write;
 use embedded_hal::serial::Read;
@@ -83,12 +83,13 @@ pub extern "C" fn main() {
             angle -= 360;
             let delta = systick::get_since(ticks_last);
             ticks_last = systick::get_ticks();
-            writeln!(uart,
-                     "Hello, world! Loops = {}, elapsed = {}, run_time = {}",
-                     loops,
-                     systick::ticks_to_usecs(delta),
-                     systick::run_time_us() as u32)
-                    .unwrap();
+            writeln!(
+                uart,
+                "Hello, world! Loops = {}, elapsed = {}, run_time = {}",
+                loops,
+                systick::ticks_to_usecs(delta),
+                systick::run_time_us() as u32
+            ).unwrap();
         };
         stellaris_launchpad::delay(50);
     }

@@ -4,7 +4,7 @@
 #![no_std]
 #![no_main]
 #![feature(alloc, collections, asm)]
-#![crate_type="staticlib"]
+#![crate_type = "staticlib"]
 
 // ****************************************************************************
 //
@@ -12,9 +12,9 @@
 //
 // ****************************************************************************
 
-extern crate stellaris_launchpad;
 extern crate alloc;
 extern crate embedded_hal;
+extern crate stellaris_launchpad;
 
 use core::fmt::Write;
 use stellaris_launchpad::cpu::{gpio, systick, timer, uart};
@@ -50,7 +50,6 @@ use embedded_hal::serial::Read as ReadHal;
 //
 // ****************************************************************************
 
-
 #[no_mangle]
 pub extern "C" fn main() {
     let mut uart = uart::Uart::new(uart::UartId::Uart0, 115200, uart::NewlineMode::SwapLFtoCRLF);
@@ -67,13 +66,14 @@ pub extern "C" fn main() {
             t.set_pwm(*level);
             let delta = systick::get_since(ticks_last);
             ticks_last = systick::get_ticks();
-            writeln!(uart,
-                     "Hello, world! Loops = {}, elapsed = {}, run_time = {}, level = {}",
-                     loops,
-                     systick::ticks_to_usecs(delta),
-                     systick::run_time_us() as u32,
-                     level)
-                    .unwrap();
+            writeln!(
+                uart,
+                "Hello, world! Loops = {}, elapsed = {}, run_time = {}, level = {}",
+                loops,
+                systick::ticks_to_usecs(delta),
+                systick::run_time_us() as u32,
+                level
+            ).unwrap();
             while let Ok(ch) = uart.read() {
                 writeln!(uart, "byte read {}", ch).unwrap();
             }
