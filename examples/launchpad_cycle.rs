@@ -18,7 +18,8 @@ extern crate stellaris_launchpad;
 
 use core::fmt::Write;
 use embedded_hal::serial::Read;
-use stellaris_launchpad::cpu::{gpio, systick, timer, uart};
+use stellaris_launchpad::board;
+use stellaris_launchpad::cpu::{systick, timer, uart};
 
 // ****************************************************************************
 //
@@ -51,8 +52,14 @@ use stellaris_launchpad::cpu::{gpio, systick, timer, uart};
 // ****************************************************************************
 
 #[no_mangle]
-pub extern "C" fn main() {
-    let mut uart = uart::Uart::new(uart::UartId::Uart0, 115200, uart::NewlineMode::SwapLFtoCRLF);
+pub extern "C" fn main(launchpad: &mut board::Board) {
+    let mut uart = uart::Uart::new(
+        uart::UartId::Uart0,
+        115200,
+        uart::NewlineMode::SwapLFtoCRLF,
+        launchpad.pins.pa0.take().unwrap(),
+        launchpad.pins.pa1.take().unwrap(),
+    );
     let mut loops = 0;
     let mut ticks_last = systick::SYSTICK_MAX;
     let mut tr = timer::Timer::new(timer::TimerId::Timer0B);
@@ -62,12 +69,15 @@ pub extern "C" fn main() {
     tb.enable_pwm(255);
     // Green is a bit bright! Tone it down.
     tg.enable_pwm(512);
-    gpio::PinPort::PortF(gpio::Pin::Pin1).set_direction(gpio::PinMode::Peripheral);
-    gpio::PinPort::PortF(gpio::Pin::Pin2).set_direction(gpio::PinMode::Peripheral);
-    gpio::PinPort::PortF(gpio::Pin::Pin3).set_direction(gpio::PinMode::Peripheral);
-    gpio::PinPort::PortF(gpio::Pin::Pin1).enable_ccp();
-    gpio::PinPort::PortF(gpio::Pin::Pin2).enable_ccp();
-    gpio::PinPort::PortF(gpio::Pin::Pin3).enable_ccp();
+    if let &mut Some(ref mut led) = &mut launchpad.leds.red {
+        led.enable_pwm();
+    }
+    if let &mut Some(ref mut led) = &mut launchpad.leds.green {
+        led.enable_pwm();
+    }
+    if let &mut Some(ref mut led) = &mut launchpad.leds.blue {
+        led.enable_pwm();
+    }
     let mut angle = 0;
     loop {
         let (r, g, b) = calculate_rgb(angle);

@@ -17,7 +17,8 @@ extern crate embedded_hal;
 extern crate stellaris_launchpad;
 
 use core::fmt::Write;
-use stellaris_launchpad::cpu::{gpio, systick, timer, uart};
+use stellaris_launchpad::board;
+use stellaris_launchpad::cpu::{systick, timer, uart};
 use embedded_hal::serial::Read as ReadHal;
 
 // ****************************************************************************
@@ -51,14 +52,21 @@ use embedded_hal::serial::Read as ReadHal;
 // ****************************************************************************
 
 #[no_mangle]
-pub extern "C" fn main() {
-    let mut uart = uart::Uart::new(uart::UartId::Uart0, 115200, uart::NewlineMode::SwapLFtoCRLF);
+pub extern "C" fn main(launchpad: &mut board::Board) {
+    let mut uart = uart::Uart::new(
+        uart::UartId::Uart0,
+        115200,
+        uart::NewlineMode::SwapLFtoCRLF,
+        launchpad.pins.pa0.take().unwrap(),
+        launchpad.pins.pa1.take().unwrap(),
+    );
     let mut loops = 0;
     let mut ticks_last = systick::SYSTICK_MAX;
     let mut t = timer::Timer::new(timer::TimerId::Timer1A);
     t.enable_pwm(4096);
-    gpio::PinPort::PortF(gpio::Pin::Pin2).set_direction(gpio::PinMode::Peripheral);
-    gpio::PinPort::PortF(gpio::Pin::Pin2).enable_ccp();
+    if let &mut Some(ref mut led) = &mut launchpad.leds.blue {
+        led.enable_pwm();
+    }
     let levels = [1u32, 256, 512, 1024, 2048, 4096];
     uart.write_all("Welcome to Launchpad Blink\n");
     loop {

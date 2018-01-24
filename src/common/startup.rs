@@ -14,8 +14,7 @@ use board;
 use cpu::{systick, uart};
 
 extern "C" {
-    // This must be defined by your application
-    fn main();
+    fn main(launchpad: &mut board::Board);
     fn _stack_top();
 }
 
@@ -397,8 +396,8 @@ pub unsafe extern "C" fn reset_vector() {
     let size = (&mut _heap_end as *mut usize as usize) - (&mut _heap_start as *mut usize as usize);
     ::ALLOCATOR.init(&mut _heap_start as *mut usize as usize, size);
 
-    board::init();
-    main();
+    let mut launchpad = board::init();
+    main(&mut launchpad);
 }
 
 // ****************************************************************************
