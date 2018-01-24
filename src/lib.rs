@@ -38,6 +38,7 @@ extern crate alloc_cortex_m;
 pub extern crate lm4f120;
 extern crate r0;
 extern crate volatile_register;
+extern crate embedded_hal;
 
 // ****************************************************************************
 //

@@ -8,6 +8,7 @@
 
 use lm4f120::{fpu, pll, systick};
 pub use lm4f120::gpio;
+use embedded_hal::digital::OutputPin;
 
 // ****************************************************************************
 //
@@ -82,26 +83,26 @@ pub fn init() {
 /// Turn an LED on
 pub fn led_on(led: Led) {
     match led {
-        Led::Red => gpio::set(LED_RED, gpio::Level::High),
-        Led::Blue => gpio::set(LED_BLUE, gpio::Level::High),
-        Led::Green => gpio::set(LED_GREEN, gpio::Level::High),
+        Led::Red => LED_RED.set_high(),
+        Led::Blue => LED_BLUE.set_high(),
+        Led::Green => LED_GREEN.set_high(),
     }
 }
 
 /// Turn an LED off
 pub fn led_off(led: Led) {
     match led {
-        Led::Red => gpio::set(LED_RED, gpio::Level::Low),
-        Led::Blue => gpio::set(LED_BLUE, gpio::Level::Low),
-        Led::Green => gpio::set(LED_GREEN, gpio::Level::Low),
+        Led::Red => LED_RED.set_low(),
+        Led::Blue => LED_BLUE.set_low(),
+        Led::Green => LED_GREEN.set_low(),
     }
 }
 
 /// Get the state of a button
 pub fn read_button(button: Button) -> gpio::Level {
     match button {
-        Button::One => gpio::read(BUTTON_ONE),
-        Button::Two => gpio::read(BUTTON_TWO),
+        Button::One => BUTTON_ONE.read(),
+        Button::Two => BUTTON_TWO.read(),
     }
 }
 
@@ -122,14 +123,14 @@ pub fn panic() -> ! {
 // ****************************************************************************
 
 fn enable_buttons() {
-    gpio::set_direction(BUTTON_ONE, gpio::PinMode::InputPull(gpio::Level::High));
-    gpio::set_direction(BUTTON_TWO, gpio::PinMode::InputPull(gpio::Level::High));
+    BUTTON_ONE.set_direction(gpio::PinMode::InputPull(gpio::Level::High));
+    BUTTON_TWO.set_direction(gpio::PinMode::InputPull(gpio::Level::High));
 }
 
 fn enable_leds() {
-    gpio::set_direction(LED_RED, gpio::PinMode::Output);
-    gpio::set_direction(LED_BLUE, gpio::PinMode::Output);
-    gpio::set_direction(LED_GREEN, gpio::PinMode::Output);
+    LED_RED.set_direction(gpio::PinMode::Output);
+    LED_BLUE.set_direction(gpio::PinMode::Output);
+    LED_GREEN.set_direction(gpio::PinMode::Output);
 }
 
 // ****************************************************************************

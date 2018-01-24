@@ -17,7 +17,7 @@ extern crate alloc;
 extern crate embedded_hal;
 
 use core::fmt::Write;
-use embedded_hal::serial::Read as ReadHal;
+use embedded_hal::serial::Read;
 use stellaris_launchpad::cpu::{gpio, systick, timer, uart};
 
 // ****************************************************************************
@@ -62,15 +62,12 @@ pub extern "C" fn main() {
     tb.enable_pwm(255);
     // Green is a bit bright! Tone it down.
     tg.enable_pwm(512);
-    gpio::set_direction(gpio::PinPort::PortF(gpio::Pin::Pin1),
-                        gpio::PinMode::Peripheral);
-    gpio::set_direction(gpio::PinPort::PortF(gpio::Pin::Pin2),
-                        gpio::PinMode::Peripheral);
-    gpio::set_direction(gpio::PinPort::PortF(gpio::Pin::Pin3),
-                        gpio::PinMode::Peripheral);
-    gpio::enable_ccp(gpio::PinPort::PortF(gpio::Pin::Pin1));
-    gpio::enable_ccp(gpio::PinPort::PortF(gpio::Pin::Pin2));
-    gpio::enable_ccp(gpio::PinPort::PortF(gpio::Pin::Pin3));
+    gpio::PinPort::PortF(gpio::Pin::Pin1).set_direction(gpio::PinMode::Peripheral);
+    gpio::PinPort::PortF(gpio::Pin::Pin2).set_direction(gpio::PinMode::Peripheral);
+    gpio::PinPort::PortF(gpio::Pin::Pin3).set_direction(gpio::PinMode::Peripheral);
+    gpio::PinPort::PortF(gpio::Pin::Pin1).enable_ccp();
+    gpio::PinPort::PortF(gpio::Pin::Pin2).enable_ccp();
+    gpio::PinPort::PortF(gpio::Pin::Pin3).enable_ccp();
     let mut angle = 0;
     loop {
         let (r, g, b) = calculate_rgb(angle);

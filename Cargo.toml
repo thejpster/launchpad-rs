@@ -33,8 +33,8 @@ codegen-units = 1
 r0 = "0.1"
 cortex-m = "0.3"
 volatile-register = "0.2"
-lm4f120 = "0.9.0"
-# lm4f120 = { path = "../lm4f120" }
+# lm4f120 = "0.9.0"
+lm4f120 = { path = "../lm4f120" }
 embedded-hal = "0.1.0"
 alloc-cortex-m = "0.3"
 rlibc = "1.0"

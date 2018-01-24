@@ -58,9 +58,8 @@ pub extern "C" fn main() {
     let mut ticks_last = systick::SYSTICK_MAX;
     let mut t = timer::Timer::new(timer::TimerId::Timer1A);
     t.enable_pwm(4096);
-    gpio::set_direction(gpio::PinPort::PortF(gpio::Pin::Pin2),
-                        gpio::PinMode::Peripheral);
-    gpio::enable_ccp(gpio::PinPort::PortF(gpio::Pin::Pin2));
+    gpio::PinPort::PortF(gpio::Pin::Pin2).set_direction(gpio::PinMode::Peripheral);
+    gpio::PinPort::PortF(gpio::Pin::Pin2).enable_ccp();
     let levels = [1u32, 256, 512, 1024, 2048, 4096];
     uart.write_all("Welcome to Launchpad Blink\n");
     loop {
