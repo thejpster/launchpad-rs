@@ -36,7 +36,7 @@ volatile-register = "0.2"
 # lm4f120 = "0.9.0"
 lm4f120 = { path = "../lm4f120" }
 embedded-hal = "0.1.0"
-alloc-cortex-m = "0.3"
+alloc-cortex-m = { git = "https://github.com/japaric/alloc-cortex-m.git" }
 rlibc = "1.0"
 
 [badges]
