@@ -16,52 +16,25 @@ use embedded_hal::digital::OutputPin;
 //
 // ****************************************************************************
 
-/// A physical button at the bottom of the Stellaris Launchpad
-pub struct Button {
-    pin: gpio::PinPort,
+#[derive(PartialEq, Clone, Copy)]
+/// The Launchpad has a tri-colour LED, which we consider
+/// to be three separate LEDs.
+pub enum Led {
+    /// The Red LED
+    Red,
+    /// The Blue LED
+    Blue,
+    /// The Green LED
+    Green,
 }
 
-/// An LED on the Stellaris Launchpad. There are three in a single RGB unit.
-pub struct Led {
-    pin: gpio::PinPort,
-}
-
-/// The set of all LEDs on the Stellaris Launchpad. There are three in an RGB unit.
-pub struct Leds {
-    /// The red LED
-    pub red: Option<Led>,
-    /// The blue LED
-    pub blue: Option<Led>,
-    /// The green LED
-    pub green: Option<Led>,
-}
-
-/// The set of all buttons on the Stellaris Launchpad. There are two at the bottom of the board.
-pub struct Buttons {
-    /// The left hand button
-    pub one: Option<Button>,
-    /// The right hand button
-    pub two: Option<Button>,
-}
-
-/// The set of all spare GPIO pins on the Stellaris Launchpad (that is, not
-/// used by LEDs, buttons or other hard-wired peripherals).
-pub struct Pins {
-    /// Pin PA0 on JXX.YY
-    pub pa0: Option<gpio::PinPort>,
-    /// Pin PA1 on JXX.YY
-    pub pa1: Option<gpio::PinPort>,
-}
-
-/// The set of all things on a Stellaris Launchpad, including buttons, LEDs
-/// and spare I/O pins.
-pub struct Board {
-    /// All the LEDs
-    pub leds: Leds,
-    /// All the buttons
-    pub buttons: Buttons,
-    /// All the spare pins (that aren't LEDs or buttons)
-    pub pins: Pins,
+#[derive(PartialEq, Clone, Copy)]
+/// The Launchpad has two buttons
+pub enum Button {
+    /// SW1
+    One,
+    /// SW2
+    Two,
 }
 
 // ****************************************************************************
@@ -78,16 +51,16 @@ pub struct Board {
 //
 // ****************************************************************************
 
-// /// The pin used for the Red LED
-// pub const LED_RED: gpio::PinPort = gpio::PinPort::PortF(gpio::Pin::Pin1);
-// /// The pin used for the Blue LED
-// pub const LED_BLUE: gpio::PinPort = gpio::PinPort::PortF(gpio::Pin::Pin2);
-// /// The pin used for the Green LED
-// pub const LED_GREEN: gpio::PinPort = gpio::PinPort::PortF(gpio::Pin::Pin3);
-// /// The pin used for Button One
-// pub const BUTTON_ONE: gpio::PinPort = gpio::PinPort::PortF(gpio::Pin::Pin0);
-// /// The pin used for Button Two
-// pub const BUTTON_TWO: gpio::PinPort = gpio::PinPort::PortF(gpio::Pin::Pin4);
+/// The pin used for the Red LED
+pub const LED_RED: gpio::PinPort = gpio::PinPort::PortF(gpio::Pin::Pin1);
+/// The pin used for the Blue LED
+pub const LED_BLUE: gpio::PinPort = gpio::PinPort::PortF(gpio::Pin::Pin2);
+/// The pin used for the Green LED
+pub const LED_GREEN: gpio::PinPort = gpio::PinPort::PortF(gpio::Pin::Pin3);
+/// The pin used for Button One
+pub const BUTTON_ONE: gpio::PinPort = gpio::PinPort::PortF(gpio::Pin::Pin0);
+/// The pin used for Button Two
+pub const BUTTON_TWO: gpio::PinPort = gpio::PinPort::PortF(gpio::Pin::Pin4);
 
 // ****************************************************************************
 //
@@ -98,81 +71,47 @@ pub struct Board {
 /// Initialise everything on the board - FPU, PLL, SysTick, GPIO and the LEDs
 /// and buttons. Should be pretty much the first call you make in `main()`.
 /// Doesn't init the UART - that's separate.
-pub fn init() -> Board {
-    let mut pins = gpio::take().unwrap();
+pub fn init() {
     fpu::init();
     pll::init(pll::ClockSpeed::Speed66MHz);
     systick::init();
-    let mut board = Board {
-        leds: Leds {
-            red: pins.pf1.take().map(|pin| Led { pin }),
-            blue: pins.pf2.take().map(|pin| Led { pin }),
-            green: pins.pf3.take().map(|pin| Led { pin }),
-        },
-        buttons: Buttons {
-            one: pins.pf0.take().map(|pin| Button { pin }),
-            two: pins.pf4.take().map(|pin| Button { pin }),
-        },
-        pins: Pins {
-            pa0: pins.pa0.take(),
-            pa1: pins.pa1.take(),
-        },
-    };
-    if let &mut Some(ref mut button) = &mut board.buttons.one {
-        button
-            .pin
-            .set_direction(gpio::PinMode::InputPull(gpio::Level::High));
-    }
-    if let &mut Some(ref mut button) = &mut board.buttons.two {
-        button
-            .pin
-            .set_direction(gpio::PinMode::InputPull(gpio::Level::High));
-    }
-    if let &mut Some(ref mut led) = &mut board.leds.red {
-        led.pin.set_direction(gpio::PinMode::Output);
-    }
-    if let &mut Some(ref mut led) = &mut board.leds.green {
-        led.pin.set_direction(gpio::PinMode::Output);
-    }
-    if let &mut Some(ref mut led) = &mut board.leds.blue {
-        led.pin.set_direction(gpio::PinMode::Output);
-    }
-    board
+    gpio::init();
+    enable_buttons();
+    enable_leds();
 }
 
-impl Led {
-    /// Turn an LED on
-    pub fn on(&mut self) {
-        self.pin.set_high()
-    }
-
-    /// Turn an LED off
-    pub fn off(&mut self) {
-        self.pin.set_low()
-    }
-
-    /// Switch to timer/capture mode.
-    pub fn enable_pwm(&mut self) {
-        self.pin.set_direction(gpio::PinMode::Peripheral);
-        self.pin.enable_ccp();
+/// Turn an LED on
+pub fn led_on(led: Led) {
+    match led {
+        Led::Red => LED_RED.set_high(),
+        Led::Blue => LED_BLUE.set_high(),
+        Led::Green => LED_GREEN.set_high(),
     }
 }
 
-impl Button {
-    /// Read the button state
-    pub fn is_pushed(&self) -> bool {
-        self.pin.read() == gpio::Level::Low
+/// Turn an LED off
+pub fn led_off(led: Led) {
+    match led {
+        Led::Red => LED_RED.set_low(),
+        Led::Blue => LED_BLUE.set_low(),
+        Led::Green => LED_GREEN.set_low(),
+    }
+}
+
+/// Get the state of a button
+pub fn read_button(button: Button) -> gpio::Level {
+    match button {
+        Button::One => BUTTON_ONE.read(),
+        Button::Two => BUTTON_TWO.read(),
     }
 }
 
 /// Call from a panic handler to flash the red LED quickly.
 pub fn panic() -> ! {
     loop {
-        // How do we steal the LED pins here?
-        // Probably have to use unsafe.
-        // led_on(Led::Red);
+        led_on(Led::Red);
         ::delay(200);
-        // led_off(Led::Red);
+        led_off(Led::Red);
         ::delay(200);
     }
 }
@@ -183,7 +122,16 @@ pub fn panic() -> ! {
 //
 // ****************************************************************************
 
-// None
+fn enable_buttons() {
+    BUTTON_ONE.set_direction(gpio::PinMode::InputPull(gpio::Level::High));
+    BUTTON_TWO.set_direction(gpio::PinMode::InputPull(gpio::Level::High));
+}
+
+fn enable_leds() {
+    LED_RED.set_direction(gpio::PinMode::Output);
+    LED_BLUE.set_direction(gpio::PinMode::Output);
+    LED_GREEN.set_direction(gpio::PinMode::Output);
+}
 
 // ****************************************************************************
 //
