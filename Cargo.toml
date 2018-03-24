@@ -9,7 +9,7 @@ keywords = ["arm", "bare-metal", "blink", "lm4f120", "launchpad"]
 license = "MIT"
 name = "stellaris-launchpad"
 readme = "README.md"
-version = "0.10.0"
+version = "0.10.1"
 description = "A bare-metal crate supporting the Texas Instruments Stellaris LM4F120 Launchpad (and most likely the Tiva-C TM4C120 Launchpad too)"
 repository = "https://github.com/thejpster/stellaris-launchpad"
 categories = ["hardware-support"]
@@ -34,10 +34,7 @@ cortex-m = "0.4"
 volatile-register = "0.2"
 lm4f120 = "0.9.1"
 embedded-hal = "0.1.0"
-# This version is broken on latest nightly
-# alloc-cortex-m = "0.3"
-# So we use the git version instead
-alloc-cortex-m = { git = "https://github.com/japaric/alloc-cortex-m.git" }
+alloc-cortex-m = "0.3.2"
 rlibc = "1.0"
 
 [badges]
