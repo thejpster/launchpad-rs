@@ -1,4 +1,4 @@
-.PHONY = all rebuild build clean examples
+.PHONY = all rebuild build clean examples prerequisites
 
 EXAMPLES_RS = $(wildcard examples/*.rs)
 EXAMPLES = $(EXAMPLES_RS:.rs=)
@@ -24,9 +24,14 @@ $(DEBUG_BIN) $(RELEASE_BIN): %.bin: %
 	arm-none-eabi-objcopy -O binary $< $@
 
 $(TARGET_ROOT)/debug/%: FORCE
-	xargo build --example $(basename $(notdir $@))
+	cargo +nightly build --example $(basename $(notdir $@))
 
 $(TARGET_ROOT)/release/%: FORCE
-	xargo build --release --example $(basename $(notdir $@))
+	cargo +nightly build --release --example $(basename $(notdir $@))
+
+prerequisites:
+	rustup install nightly
+	rustup component add rust-src
+	rustup target add thumbv7em-none-eabihf
 
 FORCE:

@@ -2,12 +2,11 @@
 
 A bare metal example program written in Rust (https://rust-lang.org) for the Stellaris Launchpad (LM4F120 dev board). May also work on the very closely related Tiva-C TM4C120 Launchpad.
 
-The idea is that useful functionality will be moved out into separate crates.
+The idea is that useful functionality will be moved out into separate crates. I'm also in the process of replacing the [lm4f120](https://crates.io/crate/lm4f120) crate with [tm4c123x-hal](https://crates.io/crate/tm4c123x-hal); the TM4C123 line replaced the LM4F120 whilst being almost perfectly compatible. The new crate also does things in a different way, particularly around peripherals being singletons (which makes you code safer). At some point I'll switch this crate to use tm4c123x.
 
 ## Requirements
 
 * rustc nightly
-* xargo
 * arm-none-eabi-gcc
 * arm-none-eabi-ar
 * arm-none-eabi-objcopy
@@ -15,18 +14,25 @@ The idea is that useful functionality will be moved out into separate crates.
 ## Geting set up
 
 ```bash
-cargo install xargo
-rustup install nightly
 git clone https://github.com/thejpster/launchpad-rs.git
 cd ./launchpad-rs
-rustup override set nightly
+rustup install nightly
 rustup component add rust-src
+rustup target add thumbv7em-none-eabihf
+```
+
+or simply
+
+```bash
+git clone https://github.com/thejpster/launchpad-rs.git
+cd ./launchpad-rs
+make prerequisites
 ```
 
 ## Compile and upload
 
 ```bash
-xargo build --example launchpad_blink
+cargo build --example launchpad_blink
 arm-none-eabi-objcopy -O binary target/thumbv7em-none-eabihf/debug/examples/launchpad_blink target/thumbv7em-none-eabihf/debug/examples/launchpad_blink.bin
 sudo lm4flash target/thumbv7em-none-eabihf/debug/examples/launchpad_blink.bin
 ```

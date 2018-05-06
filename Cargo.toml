@@ -15,18 +15,9 @@ repository = "https://github.com/thejpster/stellaris-launchpad"
 categories = ["hardware-support"]
 homepage = "https://www.thejpster.org.uk"
 
-# The development profile, used for `cargo build`.
-[profile.dev]
-panic = "abort"
-incremental = false
-codegen-units = 1
-
-# The release profile, used for `cargo build --release`.
 [profile.release]
-panic = "abort"
+lto = true
 debug = true
-incremental = false
-codegen-units = 1
 
 [dependencies]
 r0 = "0.1"
