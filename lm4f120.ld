@@ -47,6 +47,7 @@ _stack_size = 0x1000;
 
 /* # Entry point = reset vector */
 ENTRY(Reset);
+EXTERN(__RESET_VECTOR);
 
 /*
 * Sections definitions:
