@@ -12,15 +12,10 @@
 //! example set by japaric in his [F3 crate](https://github.com/japaric/f3)
 //! for the STM32F3 Discovery Board.
 
-#![crate_type = "staticlib"]
 #![feature(asm)]
-#![feature(const_fn)]
 #![feature(core_intrinsics)]
-#![feature(global_allocator)]
-#![feature(lang_items)]
 #![feature(naked_functions)]
-#![feature(never_type)]
-#![feature(start)]
+#![feature(panic_implementation)]
 #![no_std]
 #![warn(dead_code)]
 #![deny(missing_docs)]
@@ -31,7 +26,6 @@
 //
 // ****************************************************************************
 
-extern crate alloc_cortex_m;
 extern crate cortex_m;
 extern crate embedded_hal;
 extern crate r0;
@@ -50,8 +44,6 @@ pub mod common;
 pub use lm4f120 as cpu;
 
 pub use cpu::systick::delay;
-
-use alloc_cortex_m::CortexMHeap;
 
 // ****************************************************************************
 //
@@ -75,8 +67,7 @@ use alloc_cortex_m::CortexMHeap;
 //
 // ****************************************************************************
 
-#[global_allocator]
-static ALLOCATOR: CortexMHeap = CortexMHeap::empty();
+// None
 
 // ****************************************************************************
 //

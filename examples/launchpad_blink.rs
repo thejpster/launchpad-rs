@@ -3,7 +3,6 @@
 
 #![no_std]
 #![no_main]
-#![feature(alloc, collections, asm)]
 #![crate_type = "staticlib"]
 
 // ****************************************************************************
@@ -12,7 +11,6 @@
 //
 // ****************************************************************************
 
-extern crate alloc;
 extern crate embedded_hal;
 extern crate stellaris_launchpad;
 

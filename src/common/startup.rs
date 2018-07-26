@@ -16,6 +16,7 @@ use cpu::{systick, uart};
 extern "C" {
     // This must be defined by your application
     fn main();
+    // This comes from the linker scripts
     fn _stack_top();
 }
 
@@ -33,15 +34,17 @@ extern "C" {
 //
 // ****************************************************************************
 
+/* Entry point */
+#[doc(hidden)]
+#[link_section = ".vector_table.reset_vector"]
+#[no_mangle]
+pub static __RESET_VECTOR: unsafe extern "C" fn() -> ! = Reset;
+
 /// Contains exception handlers, interrupt service routine vectors and a magic value
 /// that marks the start of the stack.
-#[link_section = ".nvic_table"]
+#[link_section = ".vector_table.exceptions"]
 #[no_mangle]
-pub static ISR_VECTORS: [Option<unsafe extern "C" fn()>; 155] = [
-    // Stack pointer
-    Some(_stack_top),
-    // Reset
-    Some(reset_vector),
+pub static ISR_VECTORS: [Option<unsafe extern "C" fn()>; 153] = [
     // NMI
     Some(isr_nmi),
     // Hard Fault
@@ -377,7 +380,8 @@ pub static ISR_VECTORS: [Option<unsafe extern "C" fn()>; 155] = [
 ///
 /// Copies global .data init from flash to SRAM and then
 /// zeros the bss segment.
-pub unsafe extern "C" fn reset_vector() {
+#[no_mangle]
+pub unsafe extern "C" fn Reset() -> ! {
     extern "C" {
         static mut _bss_start: u32;
         static mut _bss_end: u32;
@@ -394,11 +398,11 @@ pub unsafe extern "C" fn reset_vector() {
     r0::zero_bss(&mut _bss_start, &mut _bss_end);
     r0::init_data(&mut _data_start, &mut _data_end, &_data_start_flash);
 
-    let size = (&mut _heap_end as *mut usize as usize) - (&mut _heap_start as *mut usize as usize);
-    ::ALLOCATOR.init(&mut _heap_start as *mut usize as usize, size);
-
     board::init();
     main();
+    loop {
+        cortex_m::asm::wfi();
+    }
 }
 
 // ****************************************************************************
@@ -430,12 +434,13 @@ pub unsafe extern "C" fn isr_hardfault() {
 /// HardFault using a normal Rust function. It's `no_mangle` because we
 /// refer to it from raw assembler in `isr_hardfault`.
 #[no_mangle]
-pub unsafe extern "C" fn isr_hardfault_rs(_sf: &cortex_m::exception::ExceptionFrame) -> ! {
+pub unsafe extern "C" fn isr_hardfault_rs(sf: &cortex_m::exception::ExceptionFrame) -> ! {
     // Need ITM support for this to work
     // iprintln!("EXCEPTION {:?} @ PC=0x{:08x}", Exception::active(), sf.pc);
 
-    // We can see this in the debugger
-    let _exc = cortex_m::exception::Exception::active();
+    use core::fmt::Write;
+    let mut uart = uart::Uart::new(uart::UartId::Uart0, 115200, uart::NewlineMode::SwapLFtoCRLF);
+    writeln!(uart, "SF: {:?}", sf).unwrap();
 
     cortex_m::asm::bkpt();
 

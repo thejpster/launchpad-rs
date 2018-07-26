@@ -6,8 +6,7 @@
 //
 // ****************************************************************************
 
-use core;
-
+use core::panic::PanicInfo;
 use board;
 
 // ****************************************************************************
@@ -67,19 +66,8 @@ pub extern "C" fn _Unwind_Resume() -> ! {
     board::panic();
 }
 
-/// Required by the compiler.
-#[lang = "eh_personality"]
-extern "C" fn eh_personality() {}
-
-/// Entry point of panic from the libcore crate.
-///
-/// Required by the compiler.
-#[lang = "panic_fmt"]
-#[no_mangle]
-pub extern "C" fn rust_begin_unwind(
-    _fmt: &core::fmt::Arguments,
-    _file_line: &(&'static str, usize),
-) -> ! {
+#[panic_implementation]
+fn panic(_info: &PanicInfo) -> ! {
     board::panic();
 }
 

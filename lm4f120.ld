@@ -45,12 +45,13 @@ MEMORY
 
 _stack_size = 0x1000;
 
+/* # Entry point = reset vector */
+ENTRY(Reset);
+
 /*
 * Sections definitions:
 *
 * .text     - machine instructions.
-* .ARM*     - No idea
-* .eh_frame - No idea
 * .data     - initialized data defined in the program.
 * .bss      - un-initialized global and static variables (to be initialized to 0 before starting main).
 */
@@ -60,22 +61,28 @@ SECTIONS
      *   Look at the LM4F120H5QR datasheet for details. (Table 2-8. Exception Types)
      */
 
-     . = 0x00000000;
+    .vector_table : {
+        /* Initial Stack Pointer (SP) value */
+        LONG(_stack_top);
+
+        /* Reset vector */
+        KEEP(*(.vector_table.reset_vector));
+
+        /* Exceptions */
+        KEEP(*(.vector_table.exceptions));
+    } > FLASH
 
     .text :
     {
-        KEEP(*(.nvic_table))     /* This must be first. It tells the ARM where the stack and IRQ vectors are. */
-                                 /* KEEP stops it being removed as we don't refer to it anywhere. */
-        *(.text*)                /* This contains most of the executable code. */
-        *(.rodata*)              /* Read only data (const variables) */
+        *(.text .text.*)         /* This contains most of the executable code. */
+        *(.rodata .rodata.*)     /* Read only data (const variables) */
         . = ALIGN(4);
     } > FLASH
 
-    .ARM.exidx : {
-        __exidx_start = .;
+    /* Don't need these */
+    /DISCARD/ : {
         *(.ARM.exidx* .gnu.linkonce.armexidx.*)
-        __exidx_end = .;
-    } > FLASH
+    }
 
     _data_start_flash = ALIGN(8);
 
@@ -88,9 +95,11 @@ SECTIONS
      */
     .data : AT (_data_start_flash)
     {
-        _data_start = .;  /* An index to the beginning of .data segment. */
+        . = ALIGN(4);
+        _data_start = ABSOLUTE(.);  /* An index to the beginning of .data segment. */
         *(.data*)         /* Initialised program data */
-        _data_end = .;    /* And another index to the end of .data segment. */
+        . = ALIGN(4);
+        _data_end = ABSOLUTE(.);    /* And another index to the end of .data segment. */
     } > SRAM
 
     /*
@@ -99,9 +108,11 @@ SECTIONS
     */
     .bss :
     {
-        _bss_start = .;  /* This is an index to the beginning of .bss segment. */
-        *(.bss*)         /* The un-initialized data should go there.  */
-        _bss_end = .;    /* End index for .bss segment */
+        . = ALIGN(4);
+       _bss_start = ABSOLUTE(.);  /* This is an index to the beginning of .bss segment. */
+        *(.bss*)                  /* The un-initialized data should go there.  */
+        . = ALIGN(4);
+        _bss_end = ABSOLUTE(.);   /* End index for .bss segment */
     } > SRAM
 
     _heap_start = .;
