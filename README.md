@@ -1,8 +1,8 @@
 # Rust on the Stellaris Launchpad
 
-A bare metal example program written in Rust (https://rust-lang.org) for the Stellaris Launchpad (LM4F120 dev board). May also work on the very closely related Tiva-C TM4C120 Launchpad.
+A bare metal example program written in Rust (https://rust-lang.org) for the Stellaris Launchpad (LM4F120 dev board). May also work on the very closely related Tiva-C TM4C123 Launchpad.
 
-The idea is that useful functionality will be moved out into separate crates. I'm also in the process of replacing the [lm4f120](https://crates.io/crate/lm4f120) crate with [tm4c123x-hal](https://crates.io/crate/tm4c123x-hal); the TM4C123 line replaced the LM4F120 whilst being almost perfectly compatible. The new crate also does things in a different way, particularly around peripherals being singletons (which makes you code safer). At some point I'll switch this crate to use tm4c123x.
+The idea is that useful functionality will be moved out into separate crates. I'm also in the process of replacing the [lm4f120](https://crates.io/crate/lm4f120) crate with [tm4c123x-hal](https://crates.io/crate/tm4c123x-hal); the TM4C123 line replaced the LM4F120 whilst being almost perfectly compatible. The new crate also does things in a different way, particularly around peripherals being singletons (which makes your code safer). At some point I'll switch this crate to use tm4c123x-hal.
 
 ## Requirements
 
