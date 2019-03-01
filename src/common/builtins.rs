@@ -66,7 +66,7 @@ pub extern "C" fn _Unwind_Resume() -> ! {
     board::panic();
 }
 
-#[panic_implementation]
+#[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
     board::panic();
 }
