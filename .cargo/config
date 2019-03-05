@@ -4,5 +4,4 @@ target = "thumbv7em-none-eabihf"
 [target.thumbv7em-none-eabihf]
 rustflags = [
 	"-C", "link-arg=-Tlm4f120.ld",
-	"-C", "link-arg=-nostartfiles"
 ]
