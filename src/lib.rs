@@ -26,10 +26,10 @@
 // ****************************************************************************
 
 extern crate cortex_m;
+extern crate cortex_m_rt;
 extern crate embedded_hal;
-extern crate r0;
+pub extern crate tm4c123x_hal;
 extern crate volatile_register;
-pub extern crate lm4f120;
 
 // ****************************************************************************
 //
@@ -40,9 +40,9 @@ pub extern crate lm4f120;
 pub mod board;
 pub mod common;
 
-pub use lm4f120 as cpu;
+pub use tm4c123x_hal as cpu;
 
-pub use cpu::systick::delay;
+pub use tm4c123x_hal::delay;
 
 // ****************************************************************************
 //
