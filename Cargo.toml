@@ -21,7 +21,6 @@ debug = true
 opt-level = "s"
 
 [dependencies]
-r0 = "0.1"
 cortex-m = "0.6"
 cortex-m-rt = "0.6"
 volatile-register = "0.2"
