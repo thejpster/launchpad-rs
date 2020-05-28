@@ -12,9 +12,6 @@
 //! example set by japaric in his [F3 crate](https://github.com/japaric/f3)
 //! for the STM32F3 Discovery Board.
 
-#![feature(asm)]
-#![feature(core_intrinsics)]
-#![feature(naked_functions)]
 #![no_std]
 #![warn(dead_code)]
 #![deny(missing_docs)]
