@@ -15,6 +15,8 @@ RELEASE_ELF = $(EXAMPLES:%=$(RELEASE_ROOT)/%)
 DEBUG_BIN = $(DEBUG_ELF:%=%.bin)
 # e.g. target/thumbv7em-none-eabihf/release/examples/foo.bin
 RELEASE_BIN = $(RELEASE_ELF:%=%.bin)
+# e.g. stable
+TOOLCHAIN = stable
 
 all: build
 
@@ -30,13 +32,13 @@ $(DEBUG_BIN) $(RELEASE_BIN): %.bin: %
 	arm-none-eabi-objcopy -O binary $< $@
 
 $(TARGET_ROOT)/debug/%: FORCE
-	cargo +nightly build --example $(basename $(notdir $@))
+	cargo +$(TOOLCHAIN) build --example $(basename $(notdir $@))
 
 $(TARGET_ROOT)/release/%: FORCE
-	cargo +nightly build --release --example $(basename $(notdir $@))
+	cargo +$(TOOLCHAIN) build --release --example $(basename $(notdir $@))
 
 prerequisites:
-	rustup install nightly
+	rustup install $(TOOLCHAIN)
 	rustup component add rust-src
 	rustup target add thumbv7em-none-eabihf
 
