@@ -12,9 +12,6 @@
 //! example set by japaric in his [F3 crate](https://github.com/japaric/f3)
 //! for the STM32F3 Discovery Board.
 
-#![feature(asm)]
-#![feature(core_intrinsics)]
-#![feature(naked_functions)]
 #![no_std]
 #![warn(dead_code)]
 #![deny(missing_docs)]
@@ -26,10 +23,10 @@
 // ****************************************************************************
 
 extern crate cortex_m;
+extern crate cortex_m_rt;
 extern crate embedded_hal;
-extern crate r0;
+pub extern crate tm4c123x_hal;
 extern crate volatile_register;
-pub extern crate lm4f120;
 
 // ****************************************************************************
 //
@@ -40,9 +37,9 @@ pub extern crate lm4f120;
 pub mod board;
 pub mod common;
 
-pub use lm4f120 as cpu;
+pub use tm4c123x_hal as cpu;
 
-pub use cpu::systick::delay;
+pub use tm4c123x_hal::delay;
 
 // ****************************************************************************
 //

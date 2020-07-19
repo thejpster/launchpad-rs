@@ -21,11 +21,11 @@ debug = true
 opt-level = "s"
 
 [dependencies]
-r0 = "0.1"
-cortex-m = "0.4"
+cortex-m = "0.6"
+cortex-m-rt = "0.6"
 volatile-register = "0.2"
-lm4f120 = "0.10.0"
 embedded-hal = "0.2"
+tm4c123x-hal = "0.10"
 
 [badges]
 travis-ci = { repository = "thejpster/stellaris-launchpad", branch = "master" }

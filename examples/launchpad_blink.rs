@@ -3,7 +3,6 @@
 
 #![no_std]
 #![no_main]
-#![crate_type = "staticlib"]
 
 // ****************************************************************************
 //
@@ -13,10 +12,15 @@
 
 extern crate embedded_hal;
 extern crate stellaris_launchpad;
+extern crate tm4c123x_hal;
 
 use core::fmt::Write;
-use stellaris_launchpad::cpu::{gpio, systick, timer, uart};
+use embedded_hal::blocking::delay::DelayMs;
 use embedded_hal::serial::Read as ReadHal;
+use embedded_hal::Pwm;
+use tm4c123x_hal::gpio::GpioExt;
+use tm4c123x_hal::serial;
+use tm4c123x_hal::time::Bps;
 
 // ****************************************************************************
 //
@@ -47,36 +51,44 @@ use embedded_hal::serial::Read as ReadHal;
 // Public Functions
 //
 // ****************************************************************************
-
 #[no_mangle]
-pub extern "C" fn main() {
-    let mut uart = uart::Uart::new(uart::UartId::Uart0, 115200, uart::NewlineMode::SwapLFtoCRLF);
+pub fn stellaris_main(mut board: stellaris_launchpad::board::Board) {
+    let mut pins_a = board.GPIO_PORTA.split(&board.power_control);
+    let mut uart = serial::Serial::uart0(
+        board.UART0,
+        pins_a.pa1.into_af_push_pull(&mut pins_a.control),
+        pins_a.pa0.into_af_push_pull(&mut pins_a.control),
+        (),
+        (),
+        Bps(115200),
+        serial::NewlineMode::SwapLFtoCRLF,
+        stellaris_launchpad::board::clocks(),
+        &board.power_control,
+    );
+    let mut delay = tm4c123x_hal::delay::Delay::new(
+        board.core_peripherals.SYST,
+        stellaris_launchpad::board::clocks(),
+    );
     let mut loops = 0;
-    let mut ticks_last = systick::SYSTICK_MAX;
-    let mut t = timer::Timer::new(timer::TimerId::Timer1A);
-    t.enable_pwm(4096);
-    gpio::PinPort::PortF(gpio::Pin::Pin2).set_direction(gpio::PinMode::Peripheral);
-    gpio::PinPort::PortF(gpio::Pin::Pin2).enable_ccp();
+
+    let mut blue_led_pwm = tm4c123x_hal::pwm::Timer::timer1(&board.power_control, board.TIMER1)
+        .into_even(board.led_blue.into_af_push_pull(&mut board.portf_control));
+
+    blue_led_pwm.set_period(4096u32);
+    blue_led_pwm.set_duty((), 0);
+    blue_led_pwm.enable(());
+
     let levels = [1u32, 256, 512, 1024, 2048, 4096];
     uart.write_all("Welcome to Launchpad Blink\n");
     loop {
-        for level in levels.iter() {
-            t.set_pwm(*level);
-            let delta = systick::get_since(ticks_last);
-            ticks_last = systick::get_ticks();
-            writeln!(
-                uart,
-                "Hello, world! Loops = {}, elapsed = {}, run_time = {}, level = {}",
-                loops,
-                systick::ticks_to_usecs(delta),
-                systick::run_time_us() as u32,
-                level
-            ).unwrap();
+        for level in &levels {
+            blue_led_pwm.set_duty((), *level);
+            writeln!(uart, "Hello, world! Loops = {}, level = {}", loops, level).unwrap();
             while let Ok(ch) = uart.read() {
                 writeln!(uart, "byte read {}", ch).unwrap();
             }
             loops = loops + 1;
-            stellaris_launchpad::delay(250);
+            delay.delay_ms(250u32);
         }
     }
 }

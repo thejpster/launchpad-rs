@@ -3,8 +3,6 @@
 
 #![no_std]
 #![no_main]
-#![feature(asm)]
-#![crate_type = "staticlib"]
 
 // ****************************************************************************
 //
@@ -14,10 +12,15 @@
 
 extern crate embedded_hal;
 extern crate stellaris_launchpad;
+extern crate tm4c123x_hal;
 
 use core::fmt::Write;
+use embedded_hal::blocking::delay::DelayMs;
 use embedded_hal::serial::Read;
-use stellaris_launchpad::cpu::{gpio, systick, timer, uart};
+use embedded_hal::Pwm;
+use tm4c123x_hal::gpio::GpioExt;
+use tm4c123x_hal::serial;
+use tm4c123x_hal::time::Bps;
 
 // ****************************************************************************
 //
@@ -50,29 +53,49 @@ use stellaris_launchpad::cpu::{gpio, systick, timer, uart};
 // ****************************************************************************
 
 #[no_mangle]
-pub extern "C" fn main() {
-    let mut uart = uart::Uart::new(uart::UartId::Uart0, 115200, uart::NewlineMode::SwapLFtoCRLF);
+fn stellaris_main(mut board: stellaris_launchpad::board::Board) {
+    let mut pins_a = board.GPIO_PORTA.split(&board.power_control);
+    let mut uart = serial::Serial::uart0(
+        board.UART0,
+        pins_a.pa1.into_af_push_pull(&mut pins_a.control),
+        pins_a.pa0.into_af_push_pull(&mut pins_a.control),
+        (),
+        (),
+        Bps(115200),
+        serial::NewlineMode::SwapLFtoCRLF,
+        stellaris_launchpad::board::clocks(),
+        &board.power_control,
+    );
+    let mut delay = tm4c123x_hal::delay::Delay::new(
+        board.core_peripherals.SYST,
+        stellaris_launchpad::board::clocks(),
+    );
+
     let mut loops = 0;
-    let mut ticks_last = systick::SYSTICK_MAX;
-    let mut tr = timer::Timer::new(timer::TimerId::Timer0B);
-    let mut tb = timer::Timer::new(timer::TimerId::Timer1A);
-    let mut tg = timer::Timer::new(timer::TimerId::Timer1B);
-    tr.enable_pwm(255);
-    tb.enable_pwm(255);
+    let mut tr = tm4c123x_hal::pwm::Timer::timer0(&board.power_control, board.TIMER0)
+        .into_odd(board.led_red.into_af_push_pull(&mut board.portf_control));
+    let (mut tb, mut tg) = tm4c123x_hal::pwm::Timer::timer1(&board.power_control, board.TIMER1)
+        .into_both(
+            board.led_blue.into_af_push_pull(&mut board.portf_control),
+            board.led_green.into_af_push_pull(&mut board.portf_control),
+        );
+
+    tr.set_period(255u32);
+    tr.set_duty((), 0);
+    tr.enable(());
+    tb.set_period(255u32);
+    tb.set_duty((), 0);
+    tb.enable(());
     // Green is a bit bright! Tone it down.
-    tg.enable_pwm(512);
-    gpio::PinPort::PortF(gpio::Pin::Pin1).set_direction(gpio::PinMode::Peripheral);
-    gpio::PinPort::PortF(gpio::Pin::Pin2).set_direction(gpio::PinMode::Peripheral);
-    gpio::PinPort::PortF(gpio::Pin::Pin3).set_direction(gpio::PinMode::Peripheral);
-    gpio::PinPort::PortF(gpio::Pin::Pin1).enable_ccp();
-    gpio::PinPort::PortF(gpio::Pin::Pin2).enable_ccp();
-    gpio::PinPort::PortF(gpio::Pin::Pin3).enable_ccp();
+    tg.set_period(512u32);
+    tg.set_duty((), 0);
+    tg.enable(());
     let mut angle = 0;
     loop {
         let (r, g, b) = calculate_rgb(angle);
-        tr.set_pwm(r as u32);
-        tb.set_pwm(b as u32);
-        tg.set_pwm(g as u32);
+        tr.set_duty((), r as u32);
+        tb.set_duty((), b as u32);
+        tg.set_duty((), g as u32);
         while let Ok(ch) = uart.read() {
             writeln!(uart, "byte read {}", ch).unwrap();
         }
@@ -80,17 +103,9 @@ pub extern "C" fn main() {
         angle = angle + 5;
         if angle >= 360 {
             angle -= 360;
-            let delta = systick::get_since(ticks_last);
-            ticks_last = systick::get_ticks();
-            writeln!(
-                uart,
-                "Hello, world! Loops = {}, elapsed = {}, run_time = {}",
-                loops,
-                systick::ticks_to_usecs(delta),
-                systick::run_time_us() as u32
-            ).unwrap();
+            writeln!(uart, "Hello, world! Loops = {}", loops,).unwrap();
         };
-        stellaris_launchpad::delay(50);
+        delay.delay_ms(50u32);
     }
 }
 
